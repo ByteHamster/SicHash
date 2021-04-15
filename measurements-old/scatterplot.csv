@@ -1,0 +1,109 @@
+Method;parameters;size;time
+CHD, 95% load;With heuristic;1.890814;16
+CHD, 95% load;Without heuristic;1.99879;13
+CHM, 100% load;;66.88;31
+BMZ, 100% load;;36.8;24
+RecSplit, 100% load;l=5, b=100;2.013584;6
+RecSplit, 100% load;l=5, b=500;1.944286;9
+RecSplit, 100% load;l=5, b=1000;1.934782;11
+RecSplit, 100% load;l=5, b=2000;1.929736;14
+RecSplit, 100% load;l=6, b=100;1.948588;8
+RecSplit, 100% load;l=6, b=500;1.877260;11
+RecSplit, 100% load;l=6, b=1000;1.867964;13
+RecSplit, 100% load;l=6, b=2000;1.862168;16
+RecSplit, 100% load;l=7, b=100;1.860412;15
+RecSplit, 100% load;l=7, b=500;1.790931;19
+RecSplit, 100% load;l=7, b=1000;1.781301;21
+RecSplit, 100% load;l=7, b=2000;1.775965;25
+RecSplit, 100% load;l=8, b=100;1.792109;32
+RecSplit, 100% load;l=8, b=500;1.724473;36
+RecSplit, 100% load;l=8, b=1000;1.714741;38
+RecSplit, 100% load;l=8, b=2000;1.709641;42
+RecSplit, 100% load;l=5, b=250;1.964120;8
+RecSplit, 100% load;l=5, b=750;1.937957;10
+RecSplit, 100% load;l=5, b=1500;1.931355;13
+RecSplit, 100% load;l=6, b=50;2.029572;7
+RecSplit, 100% load;l=6, b=250;1.897225;10
+RecSplit, 100% load;l=6, b=750;1.871774;12
+RecSplit, 100% load;l=6, b=1500;1.864303;15
+RecSplit, 100% load;l=7, b=50;1.931015;14
+RecSplit, 100% load;l=7, b=250;1.809822;18
+RecSplit, 100% load;l=7, b=750;1.784800;21
+RecSplit, 100% load;l=7, b=1500;1.778273;23
+RecSplit, 100% load;l=8, b=50;1.888225;27
+RecSplit, 100% load;l=8, b=250;1.745165;34
+RecSplit, 100% load;l=8, b=750;1.718262;40
+RecSplit, 100% load;l=8, b=1500;1.711514;44
+Ours Multi cuckoo, 95% load;45-21;1.93504;7
+Ours Multi cuckoo, 95% load;46-22;1.90465;7
+Ours Multi cuckoo, 95% load;46-23;1.89455;7
+Ours Multi cuckoo, 95% load;46-24;1.88442;7
+Ours Multi cuckoo, 95% load;46-25;1.87429;8
+Ours Multi cuckoo, 95% load;48-23;1.85427;8
+Ours Multi cuckoo, 95% load;48-24;1.84429;9
+Ours Multi cuckoo, 95% load;48-25;1.83423;8
+Ours Multi cuckoo, 95% load;48-26;1.82427;9
+Ours Multi cuckoo, 95% load;48-27;1.81433;9
+Ours Multi cuckoo, 95% load;49-23;1.83442;9
+Ours Multi cuckoo, 95% load;49-24;1.82438;9
+Ours Multi cuckoo, 95% load;49-25;1.81444;9
+Ours Multi cuckoo, 95% load;49-26;1.80447;10
+Ours Multi cuckoo, 95% load;49-27;1.79471;10
+Ours Multi cuckoo, 95% load;50-23;1.81479;10
+Ours Multi cuckoo, 95% load;50-24;1.80477;10
+Ours Multi cuckoo, 95% load;50-25;1.795;11
+Ours Multi cuckoo, 95% load;50-26;1.78538;12
+Ours Multi cuckoo, 95% load;50-27;1.77576;12
+Ours Multi cuckoo, 95% load;51-23;1.79546;11
+Ours Multi cuckoo, 95% load;51-24;1.78565;12
+Ours Multi cuckoo, 95% load;51-25;1.77626;13
+Ours Multi cuckoo, 95% load;51-26;1.76688;14
+Ours Multi cuckoo, 95% load;51-27;1.75733;16
+Ours Multi cuckoo, 95% load;52-23;1.77665;14
+Ours Multi cuckoo, 95% load;52-24;1.76719;15
+Ours Multi cuckoo, 95% load;52-25;1.7581;17
+Ours Multi cuckoo, 95% load;52-26;1.74876;20
+Ours Multi cuckoo, 95% load;52-27;1.73964;23
+Ours Multi cuckoo, 95% load;53-23 (max 31 seeds);1.75922;18
+Ours Multi cuckoo, 95% load;53-24 (max 31 seeds);1.75015;21
+Ours Multi cuckoo, 95% load;53-25 (max 31 seeds);1.74125;25
+Ours Multi cuckoo, 95% load;53-26 (max 31 seeds);1.73249;32
+Ours Multi cuckoo, 95% load;53-27 (max 31 seeds);1.72411;41
+Ours Multi cuckoo, 95% load;54-23 (max 31 seeds);1.74196;28
+Ours Multi cuckoo, 95% load;54-24 (max 31 seeds);1.73336;34
+Ours Multi cuckoo, 95% load;30-50;1.94488;6
+Ours CHD, 95% load;;1.99906;21
+Ours CHD sliding window, 95% load;1 threads;2.04214;10
+
+Ours RecSplitRotate, 100% load;l=5, b=50;2.301136;5
+Ours RecSplitRotate, 100% load;l=5, b=100;2.142410;6
+Ours RecSplitRotate, 100% load;l=5, b=250;2.048724;7
+Ours RecSplitRotate, 100% load;l=5, b=500;2.013683;8
+Ours RecSplitRotate, 100% load;l=5, b=750;2.002524;10
+Ours RecSplitRotate, 100% load;l=5, b=1000;1.996645;11
+Ours RecSplitRotate, 100% load;l=5, b=1500;1.991306;12
+Ours RecSplitRotate, 100% load;l=5, b=2000;1.988010;14
+Ours RecSplitRotate, 100% load;l=6, b=50;2.348680;5
+Ours RecSplitRotate, 100% load;l=6, b=100;2.135811;6
+Ours RecSplitRotate, 100% load;l=6, b=250;2.011073;7
+Ours RecSplitRotate, 100% load;l=6, b=500;1.965943;9
+Ours RecSplitRotate, 100% load;l=6, b=750;1.951200;11
+Ours RecSplitRotate, 100% load;l=6, b=1000;1.943111;11
+Ours RecSplitRotate, 100% load;l=6, b=1500;1.936106;13
+Ours RecSplitRotate, 100% load;l=6, b=2000;1.932172;14
+Ours RecSplitRotate, 100% load;l=7, b=50;2.342996;9
+Ours RecSplitRotate, 100% load;l=7, b=100;2.069345;10
+Ours RecSplitRotate, 100% load;l=7, b=250;1.900544;12
+Ours RecSplitRotate, 100% load;l=7, b=500;1.841602;14
+Ours RecSplitRotate, 100% load;l=7, b=750;1.823490;15
+Ours RecSplitRotate, 100% load;l=7, b=1000;1.813125;16
+Ours RecSplitRotate, 100% load;l=7, b=1500;1.803891;18
+Ours RecSplitRotate, 100% load;l=7, b=2000;1.799199;19
+Ours RecSplitRotate, 100% load;l=8, b=50;2.489172;12
+Ours RecSplitRotate, 100% load;l=8, b=100;2.097988;17
+Ours RecSplitRotate, 100% load;l=8, b=250;1.872812;19
+Ours RecSplitRotate, 100% load;l=8, b=500;1.795300;21
+Ours RecSplitRotate, 100% load;l=8, b=750;1.770349;22
+Ours RecSplitRotate, 100% load;l=8, b=1000;1.759273;23
+Ours RecSplitRotate, 100% load;l=8, b=1500;1.744949;25
+Ours RecSplitRotate, 100% load;l=8, b=2000;1.739219;27

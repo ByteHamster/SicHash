@@ -18,7 +18,8 @@ struct HashedKey {
     }
 };
 
-class HeterogeneousCuckooHashTable {
+
+class RandomWalkCuckooHashTable {
     public:
         struct TableEntry {
             HashedKey hash;
@@ -35,13 +36,17 @@ class HeterogeneousCuckooHashTable {
         const uint64_t threshold1;
         const uint64_t threshold2;
 
-        explicit HeterogeneousCuckooHashTable(size_t maxEntries, uint64_t threshold1_, uint64_t threshold2_)
+        explicit RandomWalkCuckooHashTable(size_t maxEntries, uint64_t threshold1_, uint64_t threshold2_)
                 : maxEntries(maxEntries), threshold1(threshold1_), threshold2(threshold2_) {
             heap = new TableEntry[maxEntries];
         }
 
-        ~HeterogeneousCuckooHashTable() {
+        ~RandomWalkCuckooHashTable() {
             delete heap;
+        }
+
+        static std::string name() {
+            return "RandomWalkCuckooHashTable";
         }
 
         void prepare(HashedKey hash) {
@@ -84,3 +89,5 @@ class HeterogeneousCuckooHashTable {
             return false;
         }
 };
+
+using HeterogeneousCuckooHashTable = RandomWalkCuckooHashTable;

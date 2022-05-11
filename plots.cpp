@@ -53,7 +53,46 @@ void plotConstructionSuccessByN() {
     }
 }
 
+template <typename HashTable>
+void plotConstructionPerformanceByLoadFactor() {
+    uint64_t threshold1 = UINT64_MAX / 100 * 100;
+    uint64_t threshold2 = UINT64_MAX / 100 * 100;
+    size_t M = 5000;
+    std::vector<std::string> keys = generateInputData(M);
+    for (size_t N = 0.4 * M; N <= 0.6 * M; N += 0.005 * M) {
+        HashTable hashTable(N, threshold1, threshold2);
+        for (size_t i = 0; i < N; i++) {
+            hashTable.prepare(HashedKey(keys[i]));
+        }
+        const size_t requiredNumberOfSuccessfulConstructions = 1000;
+        size_t iterations = 0;
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+        for (size_t seed = 0;; seed++) {
+            if (hashTable.construct(M, seed)) {
+                iterations++;
+            }
+            if (iterations == requiredNumberOfSuccessfulConstructions) {
+                break;
+            }
+            if (seed >= requiredNumberOfSuccessfulConstructions * 10) {
+                std::cout<<"Unable to construct at this load factor."<<std::endl;
+                return;
+            }
+        }
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        long constructionTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+        std::cout << "RESULT"
+                  << " method=" << HashTable::name()
+                  << " N=" << N
+                  << " M=" << M
+                  << " constructionTimeMicros=" << constructionTime / requiredNumberOfSuccessfulConstructions
+                  << std::endl;
+    }
+}
+
 int main() {
-    plotConstructionSuccessByN();
+    //plotConstructionSuccessByN();
+    plotConstructionPerformanceByLoadFactor<RandomWalkCuckooHashTable>();
+    //plotConstructionPerformanceByLoadFactor<HopcroftKarpMatchingCuckooHashTable>(); // TODO
     return 0;
 }

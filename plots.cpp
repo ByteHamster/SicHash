@@ -92,7 +92,7 @@ void plotConstructionPerformanceByLoadFactor() {
 
 int main() {
     //plotConstructionSuccessByN();
-    plotConstructionPerformanceByLoadFactor<RandomWalkCuckooHashTable>();
-    //plotConstructionPerformanceByLoadFactor<HopcroftKarpMatchingCuckooHashTable>(); // TODO
+    //plotConstructionPerformanceByLoadFactor<RandomWalkCuckooHashTable>();
+    plotConstructionPerformanceByLoadFactor<HopcroftKarpMatchingCuckooHashTable>();
     return 0;
 }

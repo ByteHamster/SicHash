@@ -19,6 +19,7 @@ struct HashedKey {
     }
 };
 
+#define PRECALCULATE_HASHES
 
 class RandomWalkCuckooHashTable {
     public:
@@ -26,6 +27,9 @@ class RandomWalkCuckooHashTable {
             HashedKey hash;
             uint8_t hashFunctionIndex = 0;
             uint8_t hashFunctionMask = 0;
+            #ifdef PRECALCULATE_HASHES
+                size_t hashes[8];
+            #endif
         };
         TableEntry *heap;
     private:
@@ -48,7 +52,11 @@ class RandomWalkCuckooHashTable {
         }
 
         static std::string name() {
-            return "RandomWalkCuckooHashTable";
+            #ifdef PRECALCULATE_HASHES
+                return "RandomWalkCuckooHashTablePre";
+            #else
+                return "RandomWalkCuckooHashTable";
+            #endif
         }
 
         void prepare(HashedKey hash) {
@@ -69,6 +77,13 @@ class RandomWalkCuckooHashTable {
             seed = seed_;
             cells.clear();
             cells.resize(M, nullptr);
+            #ifdef PRECALCULATE_HASHES
+                for (size_t i = 0; i < numEntries; i++) {
+                    for (size_t h = 0; h <= heap[i].hashFunctionMask; h++) {
+                        heap[i].hashes[h] = heap[i].hash.hash(h + seed, M);
+                    }
+                }
+            #endif
             for (size_t i = 0; i < numEntries; i++) {
                 if (!insert(&heap[i])) {
                     return false;
@@ -80,7 +95,11 @@ class RandomWalkCuckooHashTable {
         bool insert(TableEntry *entry) {
             size_t tries = 0;
             while (tries < 10000) {
-                size_t cell = entry->hash.hash(entry->hashFunctionIndex + seed, M);
+                #ifdef PRECALCULATE_HASHES
+                    size_t cell = entry->hashes[entry->hashFunctionIndex];
+                #else
+                    size_t cell = entry->hash.hash(entry->hashFunctionIndex + seed, M);
+                #endif
                 std::swap(entry, cells[cell]);
                 if (entry == nullptr) {
                     return true;
@@ -98,6 +117,9 @@ class HopcroftKarpMatchingCuckooHashTable {
             HashedKey hash;
             uint8_t hashFunctionIndex = 0;
             uint8_t hashFunctionMask = 0;
+            #ifdef PRECALCULATE_HASHES
+                size_t hashes[8];
+            #endif
         };
         size_t M = 0;
         size_t numEntries = 0;
@@ -117,7 +139,11 @@ class HopcroftKarpMatchingCuckooHashTable {
         }
 
         static std::string name() {
-            return "HopcroftKarpMatchingCuckooHashTable";
+            #ifdef PRECALCULATE_HASHES
+                return "HopcroftKarpMatchingCuckooHashTablePre";
+            #else
+                return "HopcroftKarpMatchingCuckooHashTable";
+            #endif
         }
 
         void prepare(HashedKey hash) {
@@ -145,6 +171,13 @@ class HopcroftKarpMatchingCuckooHashTable {
             match_from_right.resize(n_right, -1);
             dist.clear();
             dist.resize(n_left);
+            #ifdef PRECALCULATE_HASHES
+                for (size_t i = 0; i < numEntries; i++) {
+                    for (size_t h = 0; h <= heap[i].hashFunctionMask; h++) {
+                        heap[i].hashes[h] = heap[i].hash.hash(h + seed, M);
+                    }
+                }
+            #endif
 
             size_t matchingSize = get_max_matching();
             if (matchingSize != numEntries) {
@@ -154,7 +187,7 @@ class HopcroftKarpMatchingCuckooHashTable {
         }
     private:
         // https://judge.yosupo.jp/submission/52112
-        int n_left, n_right, flow = 0;
+        int n_left = 0, n_right = 0, flow = 0;
         std::vector<int> match_from_left, match_from_right;
         std::vector<int> dist;
 
@@ -172,7 +205,11 @@ class HopcroftKarpMatchingCuckooHashTable {
                 int u = q.front();
                 q.pop();
                 for (size_t i = 0; i <= heap[u].hashFunctionMask; i++) {
-                    int v = heap[u].hash.hash(i + seed, M);
+                    #ifdef PRECALCULATE_HASHES
+                        int v = heap[u].hashes[i];
+                    #else
+                        int v = heap[u].hash.hash(i + seed, M);
+                    #endif
                     if (~match_from_right[v] && !~dist[match_from_right[v]]) {
                         dist[match_from_right[v]] = dist[u] + 1;
                         q.push(match_from_right[v]);
@@ -183,7 +220,11 @@ class HopcroftKarpMatchingCuckooHashTable {
 
         bool dfs(int u) {
             for (size_t i = 0; i <= heap[u].hashFunctionMask; i++) {
-                int v = heap[u].hash.hash(i + seed, M);
+                #ifdef PRECALCULATE_HASHES
+                    int v = heap[u].hashes[i];
+                #else
+                    int v = heap[u].hash.hash(i + seed, M);
+                #endif
                 if (!~match_from_right[v]) {
                     match_from_left[u] = v;
                     heap[u].hashFunctionIndex = i;
@@ -192,7 +233,11 @@ class HopcroftKarpMatchingCuckooHashTable {
                 }
             }
             for (size_t i = 0; i <= heap[u].hashFunctionMask; i++) {
-                int v = heap[u].hash.hash(i + seed, M);
+                #ifdef PRECALCULATE_HASHES
+                    int v = heap[u].hashes[i];
+                #else
+                    int v = heap[u].hash.hash(i + seed, M);
+                #endif
                 if (dist[match_from_right[v]] == dist[u] + 1 && dfs(match_from_right[v])) {
                     match_from_left[u] = v;
                     heap[u].hashFunctionIndex = i;

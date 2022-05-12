@@ -92,91 +92,6 @@ class RandomWalkCuckooHashTable {
         }
 };
 
-// https://judge.yosupo.jp/submission/52112
-struct bipartite_matching {
-    int n_left, n_right, flow = 0;
-    std::vector<std::vector<int>> g;
-    std::vector<int> match_from_left, match_from_right;
-    std::vector<int> dist;
-
-    bipartite_matching(int _n_left, int _n_right)
-            : n_left(_n_left),
-              n_right(_n_right),
-              g(_n_left),
-              match_from_left(_n_left, -1),
-              match_from_right(_n_right, -1),
-              dist(_n_left) {}
-
-    void add(int u, int v) {
-        g[u].push_back(v);
-    }
-
-    void bfs() {
-        std::queue<int> q;
-        for (int u = 0; u < n_left; ++u) {
-            if (!~match_from_left[u]) {
-                q.push(u);
-                dist[u] = 0;
-            }else {
-                dist[u] = -1;
-            }
-        }
-        while (!q.empty()) {
-            int u = q.front();
-            q.pop();
-            for (auto v : g[u]) {
-                if (~match_from_right[v] && !~dist[match_from_right[v]]) {
-                    dist[match_from_right[v]] = dist[u] + 1;
-                    q.push(match_from_right[v]);
-                }
-            }
-        }
-    }
-
-    bool dfs(int u) {
-        for (auto v : g[u]) {
-            if (!~match_from_right[v]) {
-                match_from_left[u] = v;
-                match_from_right[v] = u;
-                return true;
-            }
-        }
-        for (auto v : g[u]) {
-            if (dist[match_from_right[v]] == dist[u] + 1 && dfs(match_from_right[v])) {
-                match_from_left[u] = v;
-                match_from_right[v] = u;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    int get_max_matching() {
-        while (true) {
-            bfs();
-            int augment = 0;
-            for (int u = 0; u < n_left; ++u) {
-                if (!~match_from_left[u]) {
-                    augment += dfs(u);
-                }
-            }
-            if (!augment) {
-                break;
-            }
-            flow += augment;
-        }
-        return flow;
-    }
-
-    std::vector<std::pair<int, int>> get_edges() {
-        std::vector<std::pair<int, int>> ans;
-        for (int u = 0; u < n_left; ++u)
-            if (match_from_left[u] != -1)
-                ans.emplace_back(u, match_from_left[u]);
-        return ans;
-    }
-};
-
 class HopcroftKarpMatchingCuckooHashTable {
     public:
         struct TableEntry {
@@ -221,13 +136,24 @@ class HopcroftKarpMatchingCuckooHashTable {
         bool construct(size_t M_, size_t seed_) {
             M = M_;
             seed = seed_;
-            bipartite_matching matching(numEntries, M);
+
+            n_left = numEntries;
+            n_right = M;
+            g.clear();
+            g.resize(n_left);
+            match_from_left.clear();
+            match_from_left.resize(n_left, -1);
+            match_from_right.clear();
+            match_from_right.resize(n_right, -1);
+            dist.clear();
+            dist.resize(n_left);
+
             for (size_t i = 0; i < numEntries; i++) {
                 for (size_t h = 0; h <= heap[i].hashFunctionMask; h++) {
-                     matching.add(i, heap[i].hash.hash(h + seed, M));
+                     add(i, heap[i].hash.hash(h + seed, M));
                 }
             }
-            size_t matchingSize = matching.get_max_matching();
+            size_t matchingSize = get_max_matching();
             if (matchingSize != numEntries) {
                 std::cout<<"Matching size: "<<matchingSize<<", N="<<numEntries<<std::endl;
                 return false;
@@ -235,13 +161,84 @@ class HopcroftKarpMatchingCuckooHashTable {
 
             for (int i = 0; i < numEntries; i++) {
                 for (size_t h = 0; h <= heap[i].hashFunctionMask; h++) {
-                    if (heap[i].hash.hash(h + seed, M) == matching.match_from_left[i]) {
+                    if (heap[i].hash.hash(h + seed, M) == match_from_left[i]) {
                         heap[i].hashFunctionIndex = h;
                         break;
                     }
                 }
             }
             return true;
+        }
+    private:
+        // https://judge.yosupo.jp/submission/52112
+        int n_left, n_right, flow = 0;
+        std::vector<std::vector<int>> g;
+        std::vector<int> match_from_left, match_from_right;
+        std::vector<int> dist;
+
+        void add(int u, int v) {
+            g[u].push_back(v);
+        }
+
+        void bfs() {
+            std::queue<int> q;
+            for (int u = 0; u < n_left; ++u) {
+                if (!~match_from_left[u]) {
+                    q.push(u);
+                    dist[u] = 0;
+                } else {
+                    dist[u] = -1;
+                }
+            }
+            while (!q.empty()) {
+                int u = q.front();
+                q.pop();
+                for (size_t i = 0; i < g[u].size(); i++) {
+                    int v = g[u][i];
+                    if (~match_from_right[v] && !~dist[match_from_right[v]]) {
+                        dist[match_from_right[v]] = dist[u] + 1;
+                        q.push(match_from_right[v]);
+                    }
+                }
+            }
+        }
+
+        bool dfs(int u) {
+            for (size_t i = 0; i < g[u].size(); i++) {
+                int v = g[u][i];
+                if (!~match_from_right[v]) {
+                    match_from_left[u] = v;
+                    match_from_right[v] = u;
+                    return true;
+                }
+            }
+            for (size_t i = 0; i < g[u].size(); i++) {
+                int v = g[u][i];
+                if (dist[match_from_right[v]] == dist[u] + 1 && dfs(match_from_right[v])) {
+                    match_from_left[u] = v;
+                    match_from_right[v] = u;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        int get_max_matching() {
+            flow = 0;
+            while (true) {
+                bfs();
+                int augment = 0;
+                for (int u = 0; u < n_left; ++u) {
+                    if (!~match_from_left[u]) {
+                        augment += dfs(u);
+                    }
+                }
+                if (!augment) {
+                    break;
+                }
+                flow += augment;
+            }
+            return flow;
         }
 };
 

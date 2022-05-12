@@ -139,8 +139,6 @@ class HopcroftKarpMatchingCuckooHashTable {
 
             n_left = numEntries;
             n_right = M;
-            g.clear();
-            g.resize(n_left);
             match_from_left.clear();
             match_from_left.resize(n_left, -1);
             match_from_right.clear();
@@ -148,14 +146,8 @@ class HopcroftKarpMatchingCuckooHashTable {
             dist.clear();
             dist.resize(n_left);
 
-            for (size_t i = 0; i < numEntries; i++) {
-                for (size_t h = 0; h <= heap[i].hashFunctionMask; h++) {
-                     add(i, heap[i].hash.hash(h + seed, M));
-                }
-            }
             size_t matchingSize = get_max_matching();
             if (matchingSize != numEntries) {
-                std::cout<<"Matching size: "<<matchingSize<<", N="<<numEntries<<std::endl;
                 return false;
             }
 
@@ -172,13 +164,8 @@ class HopcroftKarpMatchingCuckooHashTable {
     private:
         // https://judge.yosupo.jp/submission/52112
         int n_left, n_right, flow = 0;
-        std::vector<std::vector<int>> g;
         std::vector<int> match_from_left, match_from_right;
         std::vector<int> dist;
-
-        void add(int u, int v) {
-            g[u].push_back(v);
-        }
 
         void bfs() {
             std::queue<int> q;
@@ -193,8 +180,8 @@ class HopcroftKarpMatchingCuckooHashTable {
             while (!q.empty()) {
                 int u = q.front();
                 q.pop();
-                for (size_t i = 0; i < g[u].size(); i++) {
-                    int v = g[u][i];
+                for (size_t i = 0; i <= heap[u].hashFunctionMask; i++) {
+                    int v = heap[u].hash.hash(i + seed, M);
                     if (~match_from_right[v] && !~dist[match_from_right[v]]) {
                         dist[match_from_right[v]] = dist[u] + 1;
                         q.push(match_from_right[v]);
@@ -204,16 +191,16 @@ class HopcroftKarpMatchingCuckooHashTable {
         }
 
         bool dfs(int u) {
-            for (size_t i = 0; i < g[u].size(); i++) {
-                int v = g[u][i];
+            for (size_t i = 0; i <= heap[u].hashFunctionMask; i++) {
+                int v = heap[u].hash.hash(i + seed, M);
                 if (!~match_from_right[v]) {
                     match_from_left[u] = v;
                     match_from_right[v] = u;
                     return true;
                 }
             }
-            for (size_t i = 0; i < g[u].size(); i++) {
-                int v = g[u][i];
+            for (size_t i = 0; i <= heap[u].hashFunctionMask; i++) {
+                int v = heap[u].hash.hash(i + seed, M);
                 if (dist[match_from_right[v]] == dist[u] + 1 && dfs(match_from_right[v])) {
                     match_from_left[u] = v;
                     match_from_right[v] = u;

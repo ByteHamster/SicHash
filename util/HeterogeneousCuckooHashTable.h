@@ -150,15 +150,6 @@ class HopcroftKarpMatchingCuckooHashTable {
             if (matchingSize != numEntries) {
                 return false;
             }
-
-            for (int i = 0; i < numEntries; i++) {
-                for (size_t h = 0; h <= heap[i].hashFunctionMask; h++) {
-                    if (heap[i].hash.hash(h + seed, M) == match_from_left[i]) {
-                        heap[i].hashFunctionIndex = h;
-                        break;
-                    }
-                }
-            }
             return true;
         }
     private:
@@ -195,6 +186,7 @@ class HopcroftKarpMatchingCuckooHashTable {
                 int v = heap[u].hash.hash(i + seed, M);
                 if (!~match_from_right[v]) {
                     match_from_left[u] = v;
+                    heap[u].hashFunctionIndex = i;
                     match_from_right[v] = u;
                     return true;
                 }
@@ -203,6 +195,7 @@ class HopcroftKarpMatchingCuckooHashTable {
                 int v = heap[u].hash.hash(i + seed, M);
                 if (dist[match_from_right[v]] == dist[u] + 1 && dfs(match_from_right[v])) {
                     match_from_left[u] = v;
+                    heap[u].hashFunctionIndex = i;
                     match_from_right[v] = u;
                     return true;
                 }

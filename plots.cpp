@@ -1,5 +1,6 @@
 #include <chrono>
 #include "util/HeterogeneousCuckooHashTable.h"
+#include "util/HeterogeneousCuckooPerfectHashing.h"
 #include "util/Util.h"
 
 std::vector<std::string> generateInputData(size_t N) {
@@ -97,9 +98,43 @@ void plotConstructionPerformanceByLoadFactor() {
     }
 }
 
+void plotDifferentBucketSizes() {
+    std::vector<std::string> keys = generateInputData(3e6);
+    for (size_t bucketSize = 1000; bucketSize <= 6000; bucketSize += 1000) {
+        for (int i = 40; i <= 75; i += 3) {
+            for (int j = 20; j <= 45 && i + j <= 100; j += 3) {
+
+                HeterogeneousPerfectHashingConfig config;
+                config.thresholdsPercentage(i, j);
+                config.smallTableSize = bucketSize;
+                config.loadFactor = 0.9;
+                size_t spaceUsage;
+                std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+                try {
+                    HeterogeneousCuckooPerfectHashing perfectHashing(keys, config);
+                    spaceUsage = perfectHashing.spaceUsage();
+                } catch (const std::exception& e) {
+                    std::cout<<"Error: "<<e.what()<<std::endl;
+                    continue;
+                }
+                std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+                long constructionTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+                std::cout << "RESULT"
+                          << " t1=" << config.class1Percentage()
+                          << " t2=" << config.class2Percentage()
+                          << " bucketSize=" << config.smallTableSize
+                          << " spaceUsage=" << (double) spaceUsage / keys.size()
+                          << " constructionTimeMillis=" << constructionTime
+                          << std::endl;
+            }
+        }
+    }
+}
+
 int main() {
     //plotConstructionSuccessByN();
-    plotConstructionPerformanceByLoadFactor<RandomWalkCuckooHashTable>();
-    plotConstructionPerformanceByLoadFactor<HopcroftKarpMatchingCuckooHashTable>();
+    //plotConstructionPerformanceByLoadFactor<RandomWalkCuckooHashTable>();
+    //plotConstructionPerformanceByLoadFactor<HopcroftKarpMatchingCuckooHashTable>();
+    plotDifferentBucketSizes();
     return 0;
 }

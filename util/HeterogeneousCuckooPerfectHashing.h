@@ -90,7 +90,8 @@ class HeterogeneousCuckooPerfectHashing {
                 }
             }
             smallTableOffsets.push_back(sizePrefix);
-            std::cout<<"In total, "<<unnecessaryConstructions<<" of "<<numSmallTables<<" hash tables were retried."<<std::endl;
+            std::cout<<"On average, the small hash tables needed to be retried "
+                    <<(double)(unnecessaryConstructions+numSmallTables)/(double)numSmallTables<<" times"<<std::endl;
 
             std::cout<<"Constructing Ribbon"<<std::endl;
             ribbon1 = new SimpleRibbon<1, ribbonWidth>(maps[0b001]);

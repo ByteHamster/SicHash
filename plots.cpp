@@ -1,33 +1,7 @@
 #include <chrono>
 #include "util/HeterogeneousCuckooHashTable.h"
-#include "util/HeterogeneousCuckooPerfectHashing.h"
 #include "util/Util.h"
-
-std::vector<std::string> generateInputData(size_t N) {
-    std::vector<std::string> inputData;
-    inputData.reserve(N);
-    XorShift64 prng(time(nullptr));
-    char string[200];
-    for (size_t i = 0; i < N; i++) {
-        if ((i % (N/7)) == 0) {
-            std::cout<<"\rGenerating input: "<<100l*i/N<<"%"<<std::flush;
-        }
-        int length = 10 + prng((30 - 10) * 2);
-        for (std::size_t k = 0; k < (length + sizeof(uint64_t))/sizeof(uint64_t); ++k) {
-            ((uint64_t*) string)[k] = prng();
-        }
-        // Repair null bytes
-        for (std::size_t k = 0; k < length; ++k) {
-            if (string[k] == 0) {
-                string[k] = 1 + prng(255);
-            }
-        }
-        string[length] = 0;
-        inputData.emplace_back(string, length);
-    }
-    std::cout<<"\rInput generation complete."<<std::endl;
-    return inputData;
-}
+#include "util/benchmark_data.h"
 
 void plotConstructionSuccessByN() {
     std::vector<std::string> keys = generateInputData(1<<22);
@@ -98,43 +72,9 @@ void plotConstructionPerformanceByLoadFactor() {
     }
 }
 
-void plotDifferentBucketSizes() {
-    std::vector<std::string> keys = generateInputData(3e6);
-    for (size_t bucketSize = 1000; bucketSize <= 6000; bucketSize += 1000) {
-        for (int i = 40; i <= 75; i += 3) {
-            for (int j = 20; j <= 45 && i + j <= 100; j += 3) {
-
-                HeterogeneousPerfectHashingConfig config;
-                config.thresholdsPercentage(i, j);
-                config.smallTableSize = bucketSize;
-                config.loadFactor = 0.9;
-                size_t spaceUsage;
-                std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-                try {
-                    HeterogeneousCuckooPerfectHashing perfectHashing(keys, config);
-                    spaceUsage = perfectHashing.spaceUsage();
-                } catch (const std::exception& e) {
-                    std::cout<<"Error: "<<e.what()<<std::endl;
-                    continue;
-                }
-                std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-                long constructionTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-                std::cout << "RESULT"
-                          << " t1=" << config.class1Percentage()
-                          << " t2=" << config.class2Percentage()
-                          << " bucketSize=" << config.smallTableSize
-                          << " spaceUsage=" << (double) spaceUsage / keys.size()
-                          << " constructionTimeMillis=" << constructionTime
-                          << std::endl;
-            }
-        }
-    }
-}
-
 int main() {
     //plotConstructionSuccessByN();
-    //plotConstructionPerformanceByLoadFactor<RandomWalkCuckooHashTable>();
-    //plotConstructionPerformanceByLoadFactor<HopcroftKarpMatchingCuckooHashTable>();
-    plotDifferentBucketSizes();
+    plotConstructionPerformanceByLoadFactor<RandomWalkCuckooHashTable>();
+    plotConstructionPerformanceByLoadFactor<HopcroftKarpMatchingCuckooHashTable>();
     return 0;
 }

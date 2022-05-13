@@ -55,18 +55,18 @@ void plotConstructionSuccessByN() {
 
 template <typename HashTable>
 void plotConstructionPerformanceByLoadFactor() {
-    uint64_t threshold1 = UINT64_MAX / 100 * 100;
-    uint64_t threshold2 = UINT64_MAX / 100 * 100;
+    uint64_t threshold1 = UINT64_MAX / 100 * 50;
+    uint64_t threshold2 = UINT64_MAX / 100 * 75;
     size_t M = 5000;
     std::vector<std::string> keys = generateInputData(M);
-    for (double loadFactor = 0.4; loadFactor <= 0.6; loadFactor += 0.002) {
+    for (double loadFactor = 0.8; loadFactor <= 0.98; loadFactor += 0.002) {
         size_t N = loadFactor * M;
         HashTable hashTable(N, threshold1, threshold2);
         for (size_t i = 0; i < N; i++) {
             hashTable.prepare(HashedKey(keys[i]));
         }
         // Rough estimate to balance time needed for each test iteration
-        const size_t requiredNumberOfSuccessfulConstructions = 500000 * (0.65 - loadFactor) * (0.65 - loadFactor);
+        const size_t requiredNumberOfSuccessfulConstructions = 100000 * (1.05 - loadFactor) * (1.05 - loadFactor);
         size_t iterations = 0;
         std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
         for (size_t seed = 0;; seed++) {

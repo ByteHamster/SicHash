@@ -19,7 +19,7 @@ struct HashedKey {
     }
 };
 
-#define PRECALCULATE_HASHES
+//#define PRECALCULATE_HASHES
 
 class RandomWalkCuckooHashTable {
     public:

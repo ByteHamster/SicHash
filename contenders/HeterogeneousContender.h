@@ -7,11 +7,12 @@ template<size_t ribbonWidth>
 class HeterogeneousContender : public Contender {
     public:
         HeterogeneousCuckooPerfectHashing<ribbonWidth> *perfectHashing = nullptr;
-        int threshold1;
-        int threshold2;
+        HeterogeneousPerfectHashingConfig config;
 
         HeterogeneousContender(size_t N, double loadFactor, int threshold1, int threshold2)
-                : Contender(N, loadFactor), threshold1(threshold1), threshold2(threshold2) {
+                : Contender(N, loadFactor) {
+            config.thresholdsPercentage(threshold1, threshold2);
+            config.loadFactor = loadFactor;
         }
 
         ~HeterogeneousContender() {
@@ -19,11 +20,14 @@ class HeterogeneousContender : public Contender {
         }
 
         std::string name() override {
-            return "Heterogeneous t1=" + std::to_string(threshold1) + " t2=" + std::to_string(threshold2);
+            return std::string("Heterogeneous")
+                   + " t1=" + std::to_string(config.class1Percentage())
+                   + " t2=" + std::to_string(config.class2Percentage())
+                   + " bucketSize=" + std::to_string(config.smallTableSize);
         }
 
         void construct(const std::vector<std::string> &keys) override {
-            perfectHashing = new HeterogeneousCuckooPerfectHashing<ribbonWidth>(keys, loadFactor, threshold1, threshold2);
+            perfectHashing = new HeterogeneousCuckooPerfectHashing<ribbonWidth>(keys, config);
         }
 
         size_t sizeBits() override {

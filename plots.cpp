@@ -29,12 +29,14 @@ std::vector<std::string> generateInputData(size_t N) {
 }
 
 void plotConstructionSuccessByN() {
-    uint64_t threshold1 = UINT64_MAX / 100 * 100;
-    uint64_t threshold2 = UINT64_MAX / 100 * 100;
     std::vector<std::string> keys = generateInputData(1<<22);
     for (size_t M = (1<<12); M <= keys.size(); M *= 8) {
         for (size_t N = 0.4 * M; N <= 0.6 * M; N += 0.001 * M) {
-            HeterogeneousCuckooHashTable binaryCuckooHashTable(N, threshold1, threshold2);
+            HeterogeneousCuckooConfig config;
+            config.maxEntries = N;
+            config.threshold1 = UINT64_MAX / 100 * 100;
+            config.threshold2 = UINT64_MAX / 100 * 100;
+            HeterogeneousCuckooHashTable binaryCuckooHashTable(config);
             for (size_t i = 0; i < N; i++) {
                 binaryCuckooHashTable.prepare(HashedKey(keys[i]));
             }
@@ -55,13 +57,15 @@ void plotConstructionSuccessByN() {
 
 template <typename HashTable>
 void plotConstructionPerformanceByLoadFactor() {
-    uint64_t threshold1 = UINT64_MAX / 100 * 50;
-    uint64_t threshold2 = UINT64_MAX / 100 * 75;
     size_t M = 5000;
     std::vector<std::string> keys = generateInputData(M);
     for (double loadFactor = 0.8; loadFactor <= 0.98; loadFactor += 0.002) {
         size_t N = loadFactor * M;
-        HashTable hashTable(N, threshold1, threshold2);
+        HeterogeneousCuckooConfig config;
+        config.maxEntries = N;
+        config.threshold1 = UINT64_MAX / 100 * 50;
+        config.threshold2 = UINT64_MAX / 100 * 75;
+        HashTable hashTable(config);
         for (size_t i = 0; i < N; i++) {
             hashTable.prepare(HashedKey(keys[i]));
         }

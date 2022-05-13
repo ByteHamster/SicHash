@@ -19,6 +19,12 @@ struct HashedKey {
     }
 };
 
+struct HeterogeneousCuckooConfig {
+    uint64_t threshold1 = UINT64_MAX / 100 * 50; // 50%
+    uint64_t threshold2 = UINT64_MAX / 100 * 20; // 25%
+    size_t maxEntries = 0;
+};
+
 //#define PRECALCULATE_HASHES
 
 class RandomWalkCuckooHashTable {
@@ -36,15 +42,12 @@ class RandomWalkCuckooHashTable {
         std::vector<TableEntry*> cells;
         size_t M = 0;
         size_t numEntries = 0;
-        size_t maxEntries = 0;
         size_t seed = 0;
-        const uint64_t threshold1;
-        const uint64_t threshold2;
+        const HeterogeneousCuckooConfig config;
     public:
-
-        explicit RandomWalkCuckooHashTable(size_t maxEntries, uint64_t threshold1_, uint64_t threshold2_)
-                : maxEntries(maxEntries), threshold1(threshold1_), threshold2(threshold2_) {
-            heap = new TableEntry[maxEntries];
+        explicit RandomWalkCuckooHashTable(HeterogeneousCuckooConfig config_)
+                : config(config_) {
+            heap = new TableEntry[config.maxEntries];
         }
 
         ~RandomWalkCuckooHashTable() {
@@ -60,11 +63,11 @@ class RandomWalkCuckooHashTable {
         }
 
         void prepare(HashedKey hash) {
-            assert(numEntries < maxEntries);
+            assert(numEntries < config.maxEntries);
             heap[numEntries].hash = hash;
-            if (hash.mhc <= threshold1) {
+            if (hash.mhc <= config.threshold1) {
                 heap[numEntries].hashFunctionMask = 0b001;
-            } else if (hash.mhc <= threshold2) {
+            } else if (hash.mhc <= config.threshold2) {
                 heap[numEntries].hashFunctionMask = 0b011;
             } else {
                 heap[numEntries].hashFunctionMask = 0b111;
@@ -90,6 +93,10 @@ class RandomWalkCuckooHashTable {
                 }
             }
             return true;
+        }
+
+        size_t size() {
+            return numEntries;
         }
     private:
         bool insert(TableEntry *entry) {
@@ -123,15 +130,13 @@ class HopcroftKarpMatchingCuckooHashTable {
         };
         size_t M = 0;
         size_t numEntries = 0;
-        size_t maxEntries = 0;
         TableEntry *heap;
         size_t seed = 0;
-        const uint64_t threshold1;
-        const uint64_t threshold2;
+        const HeterogeneousCuckooConfig config;
 
-        explicit HopcroftKarpMatchingCuckooHashTable(size_t maxEntries, uint64_t threshold1_, uint64_t threshold2_)
-                : maxEntries(maxEntries), threshold1(threshold1_), threshold2(threshold2_) {
-            heap = new TableEntry[maxEntries];
+        explicit HopcroftKarpMatchingCuckooHashTable(HeterogeneousCuckooConfig config_)
+                : config(config_) {
+            heap = new TableEntry[config.maxEntries];
         }
 
         ~HopcroftKarpMatchingCuckooHashTable() {
@@ -147,11 +152,11 @@ class HopcroftKarpMatchingCuckooHashTable {
         }
 
         void prepare(HashedKey hash) {
-            assert(numEntries < maxEntries);
+            assert(numEntries < config.maxEntries);
             heap[numEntries].hash = hash;
-            if (hash.mhc <= threshold1) {
+            if (hash.mhc <= config.threshold1) {
                 heap[numEntries].hashFunctionMask = 0b001;
-            } else if (hash.mhc <= threshold2) {
+            } else if (hash.mhc <= config.threshold2) {
                 heap[numEntries].hashFunctionMask = 0b011;
             } else {
                 heap[numEntries].hashFunctionMask = 0b111;

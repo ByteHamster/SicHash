@@ -7,7 +7,9 @@ int main(int argc, char** argv) {
     size_t iterations = 10;
     size_t N = 1e5;
     size_t M = 3e5;
+    std::string name = "?";
     tlx::CmdlineParser cmd;
+    cmd.add_string('l', "name", name, "Name for identifying the output");
     cmd.add_bytes('i', "iterations", iterations, "Number of times to try construction");
     cmd.add_bytes('n', "numKeys", N, "Number of keys to store");
     cmd.add_bytes('m', "numLocations", M, "Size of the hash table");
@@ -34,15 +36,19 @@ int main(int argc, char** argv) {
         hashTable.prepare(HashedKey(keys[i]));
     }
     size_t successfulSeeds = 0;
-    for (size_t seed = 0; seed < 40; seed++) {
+    for (size_t seed = 0; seed < iterations; seed++) {
         if (hashTable.construct(M, seed)) {
             successfulSeeds++;
         }
     }
     std::cout << "RESULT"
+              << " name=" << name
               << " N=" << N
               << " M=" << M
-              << " success=" << successfulSeeds
-              << std::endl;
+              << " success=" << successfulSeeds;
+    for (size_t i = 2; i <= 8; i++) {
+        std::cout << " percentage" << i << "=" << thresholds_[i];
+    }
+    std::cout << std::endl;
     return 0;
 }

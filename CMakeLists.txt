@@ -19,6 +19,10 @@ add_executable(Plots plots.cpp)
 target_link_libraries(Plots PRIVATE PerfectHashingMethods)
 target_compile_features(Plots PRIVATE cxx_std_20)
 
+add_executable(ConstructionSuccess constructionSuccess.cpp)
+target_link_libraries(ConstructionSuccess PRIVATE PerfectHashingMethods)
+target_compile_features(ConstructionSuccess PRIVATE cxx_std_20)
+
 add_executable(PhfBenchmark phfBenchmark.cpp)
 target_link_libraries(PhfBenchmark PRIVATE PerfectHashingMethods)
 target_compile_features(PhfBenchmark PRIVATE cxx_std_20)
@@ -50,7 +54,7 @@ target_link_libraries(PerfectHashingMethods PUBLIC Ribbon)
 
 add_library(RibbonSorter SHARED extlib/ribbon/sorter.cpp)
 target_include_directories(RibbonSorter PRIVATE extlib/ribbon/ips2ra/include)
-target_link_libraries(RibbonSorter PRIVATE tlx ips2ra)
+target_link_libraries(RibbonSorter PUBLIC tlx ips2ra)
 target_link_libraries(PerfectHashingMethods PUBLIC RibbonSorter)
 
 find_package(OpenMP REQUIRED)

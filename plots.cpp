@@ -3,33 +3,6 @@
 #include "util/Util.h"
 #include "util/benchmark_data.h"
 
-void plotConstructionSuccessByN() {
-    std::vector<std::string> keys = generateInputData(1<<22);
-    for (size_t M = (1<<12); M <= keys.size(); M *= 8) {
-        for (size_t N = 0.4 * M; N <= 0.6 * M; N += 0.001 * M) {
-            HeterogeneousCuckooConfig config;
-            config.maxEntries = N;
-            config.threshold1 = UINT64_MAX / 100 * 100;
-            config.threshold2 = UINT64_MAX / 100 * 100;
-            HeterogeneousCuckooHashTable binaryCuckooHashTable(config);
-            for (size_t i = 0; i < N; i++) {
-                binaryCuckooHashTable.prepare(HashedKey(keys[i]));
-            }
-            size_t successfulSeeds = 0;
-            for (size_t seed = 0; seed < 40; seed++) {
-                if (binaryCuckooHashTable.construct(M, seed)) {
-                    successfulSeeds++;
-                }
-            }
-            std::cout << "RESULT"
-                      << " N=" << N
-                      << " M=" << M
-                      << " success=" << successfulSeeds
-                      << std::endl;
-        }
-    }
-}
-
 template <typename HashTable>
 void plotConstructionPerformanceByLoadFactor() {
     size_t M = 5000;
@@ -73,7 +46,6 @@ void plotConstructionPerformanceByLoadFactor() {
 }
 
 int main() {
-    //plotConstructionSuccessByN();
     plotConstructionPerformanceByLoadFactor<RandomWalkCuckooHashTable>();
     plotConstructionPerformanceByLoadFactor<HopcroftKarpMatchingCuckooHashTable>();
     return 0;

@@ -15,6 +15,7 @@ class HeterogeneousCuckooHashTableTest {
             uint8_t numHashFunctions = 0;
         };
         TableEntry *heap;
+        size_t displacements = 0;
     private:
         std::vector<TableEntry*> cells;
         size_t M = 0;
@@ -22,7 +23,7 @@ class HeterogeneousCuckooHashTableTest {
         size_t seed = 0;
         std::vector<std::pair<uint64_t, uint8_t>> thresholds;
     public:
-        explicit HeterogeneousCuckooHashTableTest(std::vector<std::pair<uint64_t, uint8_t>> thresholds_, size_t maxEntries)
+        explicit HeterogeneousCuckooHashTableTest(std::vector<std::pair<uint64_t, uint8_t>> &thresholds_, size_t maxEntries)
                 : thresholds(thresholds_) {
             heap = new TableEntry[maxEntries];
         }
@@ -48,6 +49,7 @@ class HeterogeneousCuckooHashTableTest {
         }
 
         bool construct(size_t M_, size_t seed_) {
+            displacements = 0;
             M = M_;
             seed = seed_;
             cells.clear();
@@ -60,7 +62,7 @@ class HeterogeneousCuckooHashTableTest {
             return true;
         }
 
-        size_t size() {
+        [[nodiscard]] size_t size() const {
             return numEntries;
         }
     private:
@@ -74,6 +76,7 @@ class HeterogeneousCuckooHashTableTest {
                 }
                 entry->hashFunctionIndex = (entry->hashFunctionIndex + 1) % entry->numHashFunctions;
                 tries++;
+                displacements++;
             }
             return false;
         }

@@ -3,6 +3,9 @@
 #include "util/HeterogeneousCuckooPerfectHashing.h"
 #include "util/benchmark_data.h"
 
+/**
+ * Uses the performance optimized implementation.
+ */
 int main(int argc, char** argv) {
     HeterogeneousPerfectHashingConfig config;
     size_t numReps = 1;

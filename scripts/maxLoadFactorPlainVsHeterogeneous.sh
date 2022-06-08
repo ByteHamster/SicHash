@@ -16,20 +16,28 @@ checkMaxLoadFactor() {
   done
 }
 
-checkMaxLoadFactor 100000 53000 "--percentage2 100" "Standard-d-ary"
-checkMaxLoadFactor 100000 94000 "--percentage3 100" "Standard-d-ary"
-checkMaxLoadFactor 100000 100000 "--percentage4 100" "Standard-d-ary"
-checkMaxLoadFactor 100000 100000 "--percentage5 100" "Standard-d-ary"
-checkMaxLoadFactor 100000 100000 "--percentage6 100" "Standard-d-ary"
-checkMaxLoadFactor 100000 100000 "--percentage7 100" "Standard-d-ary"
-checkMaxLoadFactor 100000 100000 "--percentage8 100" "Standard-d-ary"
+factor="00"
 
-for a in $(seq 5 5 95); do
+checkMaxLoadFactor 100$factor 53$factor "--percentage2 100" "Standard-d-ary"
+checkMaxLoadFactor 100$factor 94$factor "--percentage3 100" "Standard-d-ary"
+checkMaxLoadFactor 100$factor 100$factor "--percentage4 100" "Standard-d-ary"
+checkMaxLoadFactor 100$factor 100$factor "--percentage5 100" "Standard-d-ary"
+checkMaxLoadFactor 100$factor 100$factor "--percentage6 100" "Standard-d-ary"
+checkMaxLoadFactor 100$factor 100$factor "--percentage7 100" "Standard-d-ary"
+checkMaxLoadFactor 100$factor 100$factor "--percentage8 100" "Standard-d-ary"
+
+for a in $(seq 2 2 98); do
   b=$((100 - a))
-  initialM=100000
-  if [ "$initialM" -ge "70" ]; then
-    initialM=80000
-  fi
-  checkMaxLoadFactor 100000 100000 "--percentage2 $a --percentage4 $b" "Mix-2/4"
-  checkMaxLoadFactor 100000 100000 "--percentage2 $a --percentage8 $b" "Mix-2/8"
+  checkMaxLoadFactor 100$factor 100$factor "--percentage2 $a --percentage4 $b" "Mix-2/4"
+  checkMaxLoadFactor 100$factor 100$factor "--percentage2 $a --percentage8 $b" "Mix-2/8"
+done
+
+for i in $(seq 25 3 85); do
+  for j in $(seq 20 3 45); do
+    k=$((100 - i - j))
+    if [[ $((i + j)) -gt '100' ]]; then
+        continue
+    fi
+    checkMaxLoadFactor 100$factor 100$factor "--percentage2 $i --percentage4 $j --percentage8 $k" "Different-2/4/8"
+  done
 done

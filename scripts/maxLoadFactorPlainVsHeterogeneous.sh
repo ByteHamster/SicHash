@@ -32,3 +32,20 @@ for i in $(seq 25 3 85); do
     ./MaxLoadFactor -m "$M" --percentage2 "$i" --percentage4 "$j" --percentage8 "$k" --name "Different-2/4/8"
   done
 done
+
+function solve() {
+  python - <<END
+from sympy import symbols, nsolve
+import math
+e = math.e
+x = symbols('x')
+print(nsolve($1, 1, verify=False))
+END
+}
+
+for k10 in $(seq 201 3 400); do
+  k=$(echo "0.01 * $k10" | bc -l)
+  t=$(solve "x*(e**x-1)/(e**x-1-x) - $k")
+  c=$(solve "$t/($k*(1-e**-$t)**($k-1)) - x")
+  echo "RESULT name=Theory loadFactor=$c averageHashFunctions=$k"
+done

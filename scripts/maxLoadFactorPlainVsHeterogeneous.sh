@@ -22,6 +22,7 @@ iterate 2 4 2
 iterate 2 8 1
 iterate 2 3 5
 iterate 2 6 1
+iterate 3 5 2
 
 for i in $(seq 25 3 85); do
   for j in $(seq 20 3 45); do

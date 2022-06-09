@@ -9,7 +9,7 @@ std::vector<std::string> generateInputData(size_t N) {
     XorShift64 prng(time(nullptr));
     char string[200];
     for (size_t i = 0; i < N; i++) {
-        if ((i % (N/7)) == 0) {
+        if ((i % (N/5)) == 0) {
             std::cout<<"\rGenerating input: "<<100l*i/N<<"%"<<std::flush;
         }
         int length = 10 + prng((30 - 10) * 2);

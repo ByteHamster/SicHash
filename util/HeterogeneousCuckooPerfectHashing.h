@@ -135,9 +135,13 @@ class HeterogeneousCuckooPerfectHashing {
 
         /** Estimate for the space usage of this structure, in bits */
         [[nodiscard]] size_t spaceUsage() const {
-            return 8 * (ribbon1->size() + ribbon2->size() + ribbon3->size()
+            size_t bytes = ribbon1->size() + ribbon2->size() + ribbon3->size()
                     + smallTableOffsets.size() * sizeof(size_t)
-                    + smallTableSeeds.size() * sizeof(uint8_t));
+                    + smallTableSeeds.size() * sizeof(uint8_t);
+            if (minimal) {
+                bytes += minimalRemap.size() * sizeof(size_t);
+            }
+            return bytes * 8;
         }
 
         size_t operator() (std::string &key) const {

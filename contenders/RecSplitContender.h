@@ -9,8 +9,8 @@ class RecSplitContender : public Contender {
         size_t bucketSize;
         sux::function::RecSplit<l> *recSplit = nullptr;
 
-        RecSplitContender(size_t N, double loadFactor, size_t bucketSize)
-                : Contender(N, loadFactor), bucketSize(bucketSize) {
+        RecSplitContender(size_t N, size_t bucketSize)
+                : Contender(N, 1.0), bucketSize(bucketSize) {
         }
 
         ~RecSplitContender() {
@@ -42,20 +42,20 @@ class RecSplitContender : public Contender {
 };
 
 template <int l>
-void recSplitTestMulti(size_t N, double loadFactor) {
-    {RecSplitContender<l>(N, loadFactor, 50).run();}
-    {RecSplitContender<l>(N, loadFactor, 100).run();}
-    {RecSplitContender<l>(N, loadFactor, 250).run();}
-    {RecSplitContender<l>(N, loadFactor, 500).run();}
-    {RecSplitContender<l>(N, loadFactor, 750).run();}
-    {RecSplitContender<l>(N, loadFactor, 1000).run();}
-    {RecSplitContender<l>(N, loadFactor, 1500).run();}
-    {RecSplitContender<l>(N, loadFactor, 2000).run();}
+void recSplitTestMulti(size_t N) {
+    {RecSplitContender<l>(N, 50).run();}
+    {RecSplitContender<l>(N, 100).run();}
+    {RecSplitContender<l>(N, 250).run();}
+    {RecSplitContender<l>(N, 500).run();}
+    {RecSplitContender<l>(N, 750).run();}
+    {RecSplitContender<l>(N, 1000).run();}
+    {RecSplitContender<l>(N, 1500).run();}
+    {RecSplitContender<l>(N, 2000).run();}
 }
 
-void recSplitContenderRunner(size_t N, double loadFactor) {
-    recSplitTestMulti<5>(N, loadFactor);
-    recSplitTestMulti<6>(N, loadFactor);
-    recSplitTestMulti<7>(N, loadFactor);
-    recSplitTestMulti<8>(N, loadFactor);
+void recSplitContenderRunner(size_t N) {
+    recSplitTestMulti<5>(N);
+    recSplitTestMulti<6>(N);
+    recSplitTestMulti<7>(N);
+    recSplitTestMulti<8>(N);
 }

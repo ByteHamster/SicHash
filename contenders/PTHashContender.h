@@ -15,7 +15,8 @@ class PTHashContender : public Contender {
         }
 
         std::string name() override {
-            return "PTHash c=" + std::to_string(c) + " lf=" + std::to_string(internalLoadFactor) + " minimal=" + std::to_string(minimal);
+            return std::string("PTHash") + (minimal ? "Minimal" : "")
+                    + " c=" + std::to_string(c) + " lf=" + std::to_string(internalLoadFactor);
         }
 
         void beforeConstruction(const std::vector<std::string> &keys) override {
@@ -47,10 +48,6 @@ class PTHashContender : public Contender {
 void ptHashContenderRunner(size_t N, double loadFactor) {
     for (double c = 3.0; c < 8.1; c += 0.5) {
         PTHashContender<false>(N, loadFactor, c).run();
-    }
-    for (double c = 3.0; c < 8.1; c += 0.5) {
-        for (double loadFactorBeforeCompact = 0.6; loadFactorBeforeCompact <= 0.9; loadFactorBeforeCompact += 0.05) {
-            PTHashContender<true>(N, loadFactorBeforeCompact, c).run();
-        }
+        PTHashContender<true>(N, loadFactor, c).run();
     }
 }

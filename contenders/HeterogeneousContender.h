@@ -10,7 +10,7 @@ class HeterogeneousContender : public Contender {
         HeterogeneousPerfectHashingConfig config;
 
         HeterogeneousContender(size_t N, double loadFactor, int threshold1, int threshold2)
-                : Contender(N, loadFactor) {
+                : Contender(N, minimal ? 1.0 : loadFactor) {
             config.thresholdsPercentage(threshold1, threshold2);
             config.loadFactor = loadFactor;
         }
@@ -48,6 +48,8 @@ void heterogeneousContenderRunner(size_t N, double loadFactor) {
         for (int j = 20; j <= 45 && i + j <= 100; j += 3) {
             {HeterogeneousContender<false, 32>(N, loadFactor, i, j).run();}
             {HeterogeneousContender<false, 64>(N, loadFactor, i, j).run();}
+            {HeterogeneousContender<true, 32>(N, loadFactor, i, j).run();}
+            {HeterogeneousContender<true, 64>(N, loadFactor, i, j).run();}
         }
     }
 }

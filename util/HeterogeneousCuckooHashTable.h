@@ -2,6 +2,7 @@
 #include <vector>
 #include <queue>
 #include "Hash.h"
+#include <Function.h>
 
 struct HashedKey {
     uint64_t mhc;
@@ -15,7 +16,7 @@ struct HashedKey {
     }
 
     [[nodiscard]] inline uint64_t hash(int hashFunctionIndex, size_t range) const {
-        return fastrange64(sux::function::remix(mhc + hashFunctionIndex), range);
+        return util::fastrange64(sux::function::remix(mhc + hashFunctionIndex), range);
     }
 };
 

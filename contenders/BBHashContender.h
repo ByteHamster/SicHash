@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../extlib/BBHash/BooPHF.h"
+#include <BooPHF.h>
 #include "Contender.h"
 #include "../util/Hash.h"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../extlib/pthash/include/pthash.hpp"
+#include <pthash.hpp>
 #include "Contender.h"
 
 template <bool minimal>

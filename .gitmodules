@@ -16,3 +16,6 @@
 [submodule "extlib/BBHash"]
 	path = extlib/BBHash
 	url = git@github.com:rizkg/BBHash.git
+[submodule "extlib/util"]
+	path = extlib/util
+	url = git@github.com:ByteHamster/Util.git

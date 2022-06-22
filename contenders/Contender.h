@@ -3,7 +3,7 @@
 #include <random>
 #include <iostream>
 #include <chrono>
-#include "../util/Util.h"
+#include <XorShift64.h>
 
 #define DO_NOT_OPTIMIZE(value) asm volatile ("" : : "r,m"(value) : "memory")
 
@@ -56,7 +56,7 @@ class Contender {
         static std::vector<std::string> generateInputData(size_t N) {
             std::vector<std::string> inputData;
             inputData.reserve(N);
-            XorShift64 prng(time(nullptr));
+            util::XorShift64 prng(time(nullptr));
             char string[200];
             for (size_t i = 0; i < N; i++) {
                 if ((i % (N/7)) == 0) {

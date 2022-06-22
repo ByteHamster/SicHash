@@ -1,6 +1,5 @@
 #include <chrono>
 #include "util/HeterogeneousCuckooHashTable.h"
-#include "util/Util.h"
 #include "util/benchmark_data.h"
 
 template <typename HashTable>

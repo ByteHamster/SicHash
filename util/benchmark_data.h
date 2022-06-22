@@ -1,12 +1,12 @@
 #pragma once
 #include <vector>
 #include <iostream>
-#include "Util.h"
+#include <XorShift64.h>
 
 std::vector<std::string> generateInputData(size_t N) {
     std::vector<std::string> inputData;
     inputData.reserve(N);
-    XorShift64 prng(time(nullptr));
+    util::XorShift64 prng(time(nullptr));
     char string[200];
     for (size_t i = 0; i < N; i++) {
         if ((i % (N/5)) == 0) {

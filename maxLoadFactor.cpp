@@ -1,5 +1,4 @@
 #include "util/HeterogeneousCuckooHashTableTest.h"
-#include "util/Util.h"
 #include "util/benchmark_data.h"
 #include <tlx/cmdline_parser.hpp>
 

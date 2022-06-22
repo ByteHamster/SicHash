@@ -27,21 +27,24 @@ struct HeterogeneousPerfectHashingConfig {
     }
 };
 
-template<size_t ribbonWidth=64>
+template<bool minimal=false, size_t ribbonWidth=64>
 class HeterogeneousCuckooPerfectHashing {
     public:
         static constexpr size_t HASH_FUNCTION_BUCKET_ASSIGNMENT = 42;
         HeterogeneousPerfectHashingConfig config;
         size_t numSmallTables;
+        size_t N;
         std::vector<size_t> smallTableOffsets;
         std::vector<uint8_t> smallTableSeeds;
         SimpleRibbon<1, ribbonWidth> *ribbon1 = nullptr;
         SimpleRibbon<2, ribbonWidth> *ribbon2 = nullptr;
         SimpleRibbon<3, ribbonWidth> *ribbon3 = nullptr;
+        std::vector<size_t> emptySlots;
+        std::vector<size_t> minimalRemap;
 
         HeterogeneousCuckooPerfectHashing(const std::vector<std::string> &keys,
                                           HeterogeneousPerfectHashingConfig _config)
-                  : config(_config) {
+                  : config(_config), N(keys.size()) {
             numSmallTables = keys.size() / config.smallTableSize + 1;
             std::vector<HeterogeneousCuckooHashTable> tables;
             tables.reserve(numSmallTables);
@@ -82,13 +85,21 @@ class HeterogeneousCuckooPerfectHashing {
                 }
                 smallTableSeeds.push_back(seed);
                 smallTableOffsets.push_back(sizePrefix);
-                sizePrefix += tableM;
 
                 for (size_t i = 0; i < table.size(); i++) {
                     HeterogeneousCuckooHashTable::TableEntry &entry = table.heap[i];
                     maps[entry.hashFunctionMask].emplace_back(entry.hash.mhc, entry.hashFunctionIndex);
                 }
+                if constexpr (minimal) {
+                    for (size_t i = 0; i < tableM; i++) {
+                        if (table.cells[i] == nullptr) {
+                            emptySlots.push_back(sizePrefix + i);
+                        }
+                    }
+                }
+                sizePrefix += tableM;
             }
+
             smallTableOffsets.push_back(sizePrefix);
             std::cout<<"On average, the small hash tables needed to be retried "
                     <<(double)(unnecessaryConstructions+numSmallTables)/(double)numSmallTables<<" times"<<std::endl;
@@ -97,6 +108,29 @@ class HeterogeneousCuckooPerfectHashing {
             ribbon1 = new SimpleRibbon<1, ribbonWidth>(maps[0b001]);
             ribbon2 = new SimpleRibbon<2, ribbonWidth>(maps[0b011]);
             ribbon3 = new SimpleRibbon<3, ribbonWidth>(maps[0b111]);
+
+            if constexpr (minimal) {
+                std::cout<<"Making minimal"<<std::endl;
+                minimalRemap.reserve(sizePrefix - N);
+
+                size_t smallTableToRemap = 0;
+                while (smallTableOffsets[smallTableToRemap] < N) {
+                    smallTableToRemap++;
+                }
+                smallTableToRemap--;
+                // Iterate over last few tables and remap filled positions
+                size_t emptyIndex = 0;
+                size_t i = keys.size() - smallTableOffsets[smallTableToRemap];
+                for (;smallTableToRemap < numSmallTables; smallTableToRemap++) {
+                    for (; i < tables[smallTableToRemap].M; i++) {
+                        minimalRemap.emplace_back(emptySlots[emptyIndex]);
+                        if (tables[smallTableToRemap].cells[i] != nullptr) {
+                            emptyIndex++;
+                        }
+                    }
+                    i = 0;
+                }
+            }
         }
 
         /** Estimate for the space usage of this structure, in bits */
@@ -118,6 +152,12 @@ class HeterogeneousCuckooPerfectHashing {
                 hashFunction = ribbon3->retrieve(hash.mhc);
             }
             size_t M = smallTableOffsets[smallTable + 1] - smallTableOffsets[smallTable];
-            return hash.hash(hashFunction + smallTableSeeds[smallTable], M) + smallTableOffsets[smallTable];
+            size_t result = hash.hash(hashFunction + smallTableSeeds[smallTable], M) + smallTableOffsets[smallTable];
+            if constexpr (minimal) {
+                if (result >= N) {
+                    return minimalRemap[result - N];
+                }
+            }
+            return result;
         }
 };

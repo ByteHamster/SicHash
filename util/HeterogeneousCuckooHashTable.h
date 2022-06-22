@@ -38,9 +38,9 @@ class RandomWalkCuckooHashTable {
             #endif
         };
         TableEntry *heap;
-    private:
         std::vector<TableEntry*> cells;
         size_t M = 0;
+    private:
         size_t numEntries = 0;
         size_t seed = 0;
         const HeterogeneousCuckooConfig config;

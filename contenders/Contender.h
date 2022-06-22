@@ -102,22 +102,20 @@ class Contender {
 
         template<typename F>
         void doPerformTest(const std::vector<std::string> &keys, F &hashFunction) {
-            int numWorked = 0;
             std::vector<bool> taken(M);
-            for (const std::string &key : keys) {
-                size_t retrieved = hashFunction(const_cast<std::string &>(key));
+            for (size_t i = 0; i < keys.size(); i++) {
+                size_t retrieved = hashFunction(const_cast<std::string &>(keys[i]));
                 // Some contenders expect non-const keys but actually use them as const.
                 if (retrieved > M) {
                     std::cout << "Error: Range wrong. Hash function returned " << retrieved << std::endl;
                     return;
                 }
                 if (taken[retrieved]) {
-                    std::cout<<"Failed: Key #"<<numWorked<<"/"<<N<<": "<<key<<std::endl;
+                    std::cout<<"Failed: Key #"<<i<<"/"<<N<<": "<<keys[i]<<std::endl;
                     std::cout<<"Aborting query"<<std::endl;
                     return;
                 }
                 taken[retrieved] = true;
-                numWorked++;
             }
         }
 };

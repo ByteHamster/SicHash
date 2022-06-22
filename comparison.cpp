@@ -18,7 +18,6 @@ int main() {
     runContenders(N, 0.9);
     runContenders(N, 0.95);
     runContenders(N, 0.97);
-    runContenders(N, 0.99);
     recSplitContenderRunner(N);
     return 0;
 }

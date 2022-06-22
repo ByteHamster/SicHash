@@ -1,8 +1,8 @@
 #pragma once
 
 #include <BooPHF.h>
+#include <MurmurHash64.h>
 #include "Contender.h"
-#include "../util/Hash.h"
 
 class BBHashContender : public Contender {
     public:
@@ -27,7 +27,7 @@ class BBHashContender : public Contender {
 
         void beforeConstruction(const std::vector<std::string> &keys) override {
             for (const std::string &s : keys) {
-                mhcs.emplace_back(ElementHasher(s).mhc);
+                mhcs.emplace_back(util::MurmurHash64(s));
             }
         }
 
@@ -43,14 +43,14 @@ class BBHashContender : public Contender {
 
         void performQueries(const std::vector<std::string> &keys) override {
             auto x = [&] (std::string &key) {
-                return bbhash->lookup(ElementHasher(key).mhc);
+                return bbhash->lookup(util::MurmurHash64(key));
             };
             doPerformQueries(keys, x);
         }
 
         void performTest(const std::vector<std::string> &keys) override {
             auto x = [&] (std::string &key) {
-                return bbhash->lookup(ElementHasher(key).mhc);
+                return bbhash->lookup(util::MurmurHash64(key));
             };
             doPerformTest(keys, x);
         }

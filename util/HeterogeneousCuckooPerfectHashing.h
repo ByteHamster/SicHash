@@ -2,6 +2,7 @@
 #include <vector>
 #include "HeterogeneousCuckooHashTable.h"
 #include "SimpleRibbon.h"
+#include <EliasFano.h>
 
 struct HeterogeneousPerfectHashingConfig {
     uint64_t threshold1 = UINT64_MAX / 100 * 50; // 50%
@@ -40,11 +41,12 @@ class HeterogeneousCuckooPerfectHashing {
         SimpleRibbon<2, ribbonWidth> *ribbon2 = nullptr;
         SimpleRibbon<3, ribbonWidth> *ribbon3 = nullptr;
         std::vector<size_t> emptySlots;
-        std::vector<size_t> minimalRemap;
+        util::EliasFano<3> minimalRemap;
 
         HeterogeneousCuckooPerfectHashing(const std::vector<std::string> &keys,
                                           HeterogeneousPerfectHashingConfig _config)
-                  : config(_config), N(keys.size()) {
+                  : config(_config), N(keys.size()),
+                        minimalRemap(minimal ? (N / config.loadFactor - N) : 0, minimal ? N : 0) {
             numSmallTables = keys.size() / config.smallTableSize + 1;
             std::vector<HeterogeneousCuckooHashTable> tables;
             tables.reserve(numSmallTables);
@@ -111,8 +113,6 @@ class HeterogeneousCuckooPerfectHashing {
 
             if constexpr (minimal) {
                 std::cout<<"Making minimal"<<std::endl;
-                minimalRemap.reserve(sizePrefix - N);
-
                 size_t smallTableToRemap = 0;
                 while (smallTableOffsets[smallTableToRemap] < N) {
                     smallTableToRemap++;
@@ -123,13 +123,22 @@ class HeterogeneousCuckooPerfectHashing {
                 size_t i = keys.size() - smallTableOffsets[smallTableToRemap];
                 for (;smallTableToRemap < numSmallTables; smallTableToRemap++) {
                     for (; i < tables[smallTableToRemap].M; i++) {
-                        minimalRemap.emplace_back(emptySlots[emptyIndex]);
+                        minimalRemap.push_back(emptySlots[emptyIndex]);
                         if (tables[smallTableToRemap].cells[i] != nullptr) {
                             emptyIndex++;
+                            if (emptySlots[emptyIndex] >= N) {
+                                // No more empty slots left. We do not need to write the following items to
+                                // the EF sequence because they are never queried
+                                emptyIndex--;
+                                break;
+                            }
                         }
                     }
                     i = 0;
                 }
+                minimalRemap.buildRankSelect();
+                emptySlots.clear();
+                emptySlots.shrink_to_fit();
             }
         }
 
@@ -139,7 +148,7 @@ class HeterogeneousCuckooPerfectHashing {
                     + smallTableOffsets.size() * sizeof(size_t)
                     + smallTableSeeds.size() * sizeof(uint8_t);
             if (minimal) {
-                bytes += minimalRemap.size() * sizeof(size_t);
+                bytes += minimalRemap.space();
             }
             return bytes * 8;
         }
@@ -159,7 +168,7 @@ class HeterogeneousCuckooPerfectHashing {
             size_t result = hash.hash(hashFunction + smallTableSeeds[smallTable], M) + smallTableOffsets[smallTable];
             if constexpr (minimal) {
                 if (result >= N) {
-                    return minimalRemap[result - N];
+                    return minimalRemap.at(result - N);
                 }
             }
             return result;

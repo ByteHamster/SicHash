@@ -20,7 +20,9 @@ class HeterogeneousContender : public Contender {
         }
 
         std::string name() override {
-            return std::string("Heterogeneous") + (minimal ? "Minimal" : "")
+            return std::string("Heterogeneous")
+                   + " minimal=" + std::to_string(minimal)
+                   + " lf=" + std::to_string(config.loadFactor) // Internal load factor
                    + " t1=" + std::to_string(config.class1Percentage())
                    + " t2=" + std::to_string(config.class2Percentage())
                    + " bucketSize=" + std::to_string(config.smallTableSize);

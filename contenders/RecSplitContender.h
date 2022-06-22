@@ -18,7 +18,9 @@ class RecSplitContender : public Contender {
         }
 
         std::string name() override {
-            return "RecSplit l="+std::to_string(l)+" b="+std::to_string(bucketSize);
+            return std::string("RecSplit")
+                  + " l=" + std::to_string(l)
+                  + " b=" + std::to_string(bucketSize);
         }
 
         void beforeConstruction(const std::vector<std::string> &keys) override {

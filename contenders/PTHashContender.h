@@ -15,8 +15,10 @@ class PTHashContender : public Contender {
         }
 
         std::string name() override {
-            return std::string("PTHash") + (minimal ? "Minimal" : "")
-                    + " c=" + std::to_string(c) + " lf=" + std::to_string(internalLoadFactor);
+            return std::string("PTHash")
+                    + " minimal=" + std::to_string(minimal)
+                    + " c=" + std::to_string(c)
+                    + " lf=" + std::to_string(internalLoadFactor);
         }
 
         void beforeConstruction(const std::vector<std::string> &keys) override {

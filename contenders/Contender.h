@@ -106,7 +106,7 @@ class Contender {
             for (size_t i = 0; i < keys.size(); i++) {
                 size_t retrieved = hashFunction(const_cast<std::string &>(keys[i]));
                 // Some contenders expect non-const keys but actually use them as const.
-                if (retrieved > M) {
+                if (retrieved > M * 1.0001) {
                     std::cout << "Error: Range wrong. Hash function returned " << retrieved << std::endl;
                     return;
                 }

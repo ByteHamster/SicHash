@@ -13,8 +13,8 @@ class CmphContender : public Contender {
         int b;
         std::string nameP;
 
-        CmphContender(size_t N, double loadFactor, std::string name, CMPH_ALGO algo, double c, int b)
-                : Contender(N, loadFactor), algo(algo), c(c), b(b), nameP(name) {
+        CmphContender(size_t N, double loadFactor, std::string name, CMPH_ALGO algo, double c, int b, bool minimal)
+                : Contender(N, minimal ? 1.0 : loadFactor), algo(algo), c(c), b(b), nameP(name) {
             data = static_cast<const char **>(malloc(N * sizeof(char*)));
         }
 
@@ -27,7 +27,8 @@ class CmphContender : public Contender {
         }
 
         std::string name() override {
-            return "cmph-" + nameP;
+            return std::string("cmph-" + nameP)
+                    + " lf=" + std::to_string(c);
         }
 
         void beforeConstruction(const std::vector<std::string> &keys) override {
@@ -75,13 +76,13 @@ class CmphContender : public Contender {
 
 void cmphContenderRunner(size_t N, double loadFactor) {
     for (int b = 1; b < 8; b++) {
-        {CmphContender(N, loadFactor, "CHD", CMPH_CHD_PH, loadFactor, b).run();} // b=keys_per_bucket
-        {CmphContender(N, loadFactor, "CHD", CMPH_CHD, loadFactor, b).run();} // b=keys_per_bucket
-        //{CmphContender(N, loadFactor, "BDZ", CMPH_BDZ, loadFactor, b).run();} // b=number of bits of k // Hangs
-        {CmphContender(N, loadFactor, "BRZ", CMPH_BRZ, 0, b).run();} // b=???
+        {CmphContender(N, loadFactor, "CHD", CMPH_CHD_PH, loadFactor, b, false).run();} // b=keys_per_bucket
+        {CmphContender(N, loadFactor, "CHD", CMPH_CHD, loadFactor, b, true).run();} // b=keys_per_bucket
+        if (loadFactor <= 0.8) {CmphContender(N, loadFactor, "BDZ", CMPH_BDZ, 1.0/loadFactor, b, true).run();} // b=number of bits of k
+        {CmphContender(N, loadFactor, "BRZ", CMPH_BRZ, 0, b, true).run();} // b=???
     }
-    //{CmphContender(N, loadFactor, "BDZ", CMPH_BDZ_PH, loadFactor, 0).run();} // b ignored // Hangs
-    {CmphContender(N, loadFactor, "BMZ", CMPH_BMZ, loadFactor, 0).run();} // b ignored
-    {CmphContender(N, loadFactor, "CHM", CMPH_CHM, loadFactor, 0).run();} // b ignored
-    //{CmphContender(N, loadFactor, "FCH", CMPH_FCH, loadFactor, 0).run();} // b ignored // Hangs
+    if (loadFactor <= 0.8) {CmphContender(N, loadFactor, "BDZ", CMPH_BDZ_PH, 1.0/loadFactor, 0, false).run();} // b ignored
+    {CmphContender(N, loadFactor, "BMZ", CMPH_BMZ, loadFactor, 0, true).run();} // b ignored
+    {CmphContender(N, loadFactor, "CHM", CMPH_CHM, loadFactor, 0, true).run();} // b ignored
+    {CmphContender(N, loadFactor, "FCH", CMPH_FCH, loadFactor, 0, true).run();} // b ignored // Hangs
 }

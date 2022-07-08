@@ -12,9 +12,10 @@ class BBHashContender : public Contender {
         std::vector<u_int64_t> mhcs;
         double gamma;
         double perc_elem_loaded;
+        double lf;
 
         BBHashContender(size_t N, double loadFactor, double gamma, double perc_elem_loaded)
-                : Contender(N, loadFactor), gamma(gamma), perc_elem_loaded(perc_elem_loaded) {
+                : Contender(N, 1.0), gamma(gamma), perc_elem_loaded(perc_elem_loaded), lf(loadFactor) {
         }
 
         ~BBHashContender() {
@@ -22,7 +23,8 @@ class BBHashContender : public Contender {
         }
 
         std::string name() override {
-            return "BBHash";
+            return std::string("BBHash")
+                + " lf=" + std::to_string(lf);
         }
 
         void beforeConstruction(const std::vector<std::string> &keys) override {

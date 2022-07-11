@@ -4,6 +4,7 @@
 #include <iostream>
 #include <chrono>
 #include <XorShift64.h>
+#include <unistd.h>
 
 #define DO_NOT_OPTIMIZE(value) asm volatile ("" : : "r,m"(value) : "memory")
 
@@ -32,6 +33,8 @@ class Contender {
             std::vector<std::string> keys = generateInputData(N);
             beforeConstruction(keys);
 
+            std::cout << "Cooldown" << std::endl;
+            usleep(1000*1000);
             std::cout << "Constructing" << std::endl;
             std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
             try {
@@ -45,6 +48,8 @@ class Contender {
 
             std::cout<<"Testing"<<std::endl;
             performTest(keys);
+            std::cout << "Cooldown" << std::endl;
+            usleep(1000*1000);
             std::cout<<"Querying"<<std::endl;
             begin = std::chrono::steady_clock::now();
             performQueries(keys);

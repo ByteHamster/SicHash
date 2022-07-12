@@ -46,8 +46,12 @@ class HeterogeneousContender : public Contender {
 };
 
 void heterogeneousContenderRunner(size_t N, double loadFactor) {
-    for (int i = 25; i <= 75; i += 3) {
-        for (int j = 20; j <= 45 && i + j <= 100; j += 3) {
+    int jStepSize;
+    int iStepSize;
+    for (int i = 25; i <= 70; i += iStepSize) {
+        iStepSize = i > 60 ? 2 : 4;
+        jStepSize = i > 55 ? 3 : 8;
+        for (int j = 20; j <= 45 && i + j <= 100; j += jStepSize) {
             {HeterogeneousContender<false, 32>(N, loadFactor, i, j).run();}
             {HeterogeneousContender<false, 64>(N, loadFactor, i, j).run();}
             {HeterogeneousContender<true, 32>(N, loadFactor, i, j).run();}

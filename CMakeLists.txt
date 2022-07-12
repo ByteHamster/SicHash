@@ -17,6 +17,10 @@ add_executable(Comparison comparison.cpp)
 target_link_libraries(Comparison PRIVATE PerfectHashingMethods)
 target_compile_features(Comparison PRIVATE cxx_std_20)
 
+add_executable(ComparisonN comparisonN.cpp)
+target_link_libraries(ComparisonN PRIVATE PerfectHashingMethods)
+target_compile_features(ComparisonN PRIVATE cxx_std_20)
+
 add_executable(OldPlots old_plots.cpp)
 target_link_libraries(OldPlots PRIVATE PerfectHashingMethods)
 target_compile_features(OldPlots PRIVATE cxx_std_20)

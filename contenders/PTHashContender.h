@@ -6,11 +6,11 @@
 template <bool minimal>
 class PTHashContender : public Contender {
     public:
-        size_t c;
+        double c;
         double internalLoadFactor;
         pthash::single_phf<pthash::murmurhash2_64, pthash::elias_fano, minimal> pthashFunction;
 
-        PTHashContender(size_t N, double loadFactor, size_t c)
+        PTHashContender(size_t N, double loadFactor, double c)
                 : Contender(N, minimal ? 1.0 : loadFactor), c(c), internalLoadFactor(loadFactor) {
         }
 

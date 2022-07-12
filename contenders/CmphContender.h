@@ -28,7 +28,8 @@ class CmphContender : public Contender {
 
         std::string name() override {
             return std::string("cmph-" + nameP)
-                    + " lf=" + std::to_string(c);
+                    + " lf=" + std::to_string(c)
+                    + " b=" + std::to_string(b);
         }
 
         void beforeConstruction(const std::vector<std::string> &keys) override {

@@ -116,7 +116,7 @@ class Contender {
                     return;
                 }
                 if (taken[retrieved]) {
-                    std::cout<<"Failed: Key #"<<i<<"/"<<N<<": "<<keys[i]<<std::endl;
+                    std::cout<<"Error: Collision: Key #"<<i<<"/"<<N<<" resulted in "<<retrieved<<": "<<keys[i]<<std::endl;
                     std::cout<<"Aborting query"<<std::endl;
                     return;
                 }

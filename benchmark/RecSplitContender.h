@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sux/function/RecSplit.hpp"
+#include <sux/function/RecSplit.hpp>
 #include "Contender.h"
 
 template<int l>

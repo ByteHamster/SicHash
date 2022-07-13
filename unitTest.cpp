@@ -1,5 +1,5 @@
-#include "util/HeterogeneousCuckooPerfectHashing.h"
-#include "contenders/Contender.h"
+#include <HeterogeneousCuckooPerfectHashing.h>
+#include "benchmark/Contender.h"
 
 template <bool minimal>
 void performTest(size_t N, double loadFactor, int threshold1, int threshold2) {

@@ -1,6 +1,6 @@
 #include <chrono>
-#include "util/HeterogeneousCuckooHashTable.h"
-#include "util/benchmark_data.h"
+#include <HeterogeneousCuckooHashTable.h>
+#include "benchmark/BenchmarkData.h"
 
 template <typename HashTable>
 void plotConstructionPerformanceByLoadFactor() {

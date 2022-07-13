@@ -1,6 +1,6 @@
-#include "util/HeterogeneousCuckooHashTableTest.h"
-#include "util/benchmark_data.h"
 #include <tlx/cmdline_parser.hpp>
+#include <HeterogeneousCuckooHashTableTest.h>
+#include "benchmark/BenchmarkData.h"
 
 /**
  * Uses the implementation that is focused on flexibility and statistics.

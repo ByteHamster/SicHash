@@ -1,8 +1,8 @@
-#include "contenders/CmphContender.h"
-#include "contenders/HeterogeneousContender.h"
-#include "contenders/PTHashContender.h"
-#include "contenders/RecSplitContender.h"
 #include <tlx/cmdline_parser.hpp>
+#include "benchmark/CmphContender.h"
+#include "benchmark/HeterogeneousContender.h"
+#include "benchmark/PTHashContender.h"
+#include "benchmark/RecSplitContender.h"
 
 int main(int argc, char** argv) {
     size_t N = 5e6;

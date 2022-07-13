@@ -1,6 +1,7 @@
 #pragma once
 
 #include <pthash.hpp>
+#undef MAX_BUCKET_SIZE
 #include "Contender.h"
 
 template <bool minimal>

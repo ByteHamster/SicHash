@@ -1,6 +1,7 @@
 #pragma once
 
-#include "cmph.h"
+#include <cmph.h>
+#undef MAX_BUCKET_SIZE
 #include "Contender.h"
 
 class CmphContender : public Contender {

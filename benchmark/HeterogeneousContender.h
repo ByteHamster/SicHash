@@ -1,7 +1,7 @@
 #pragma once
 
+#include <HeterogeneousCuckooPerfectHashing.h>
 #include "Contender.h"
-#include "../util/HeterogeneousCuckooPerfectHashing.h"
 
 template<bool minimal, size_t ribbonWidth>
 class HeterogeneousContender : public Contender {

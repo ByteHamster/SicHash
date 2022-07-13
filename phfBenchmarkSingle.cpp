@@ -1,7 +1,7 @@
 #include <chrono>
 #include <tlx/cmdline_parser.hpp>
-#include "util/HeterogeneousCuckooPerfectHashing.h"
-#include "util/benchmark_data.h"
+#include <HeterogeneousCuckooPerfectHashing.h>
+#include "benchmark/BenchmarkData.h"
 
 int main(int argc, char** argv) {
     HeterogeneousPerfectHashingConfig config;

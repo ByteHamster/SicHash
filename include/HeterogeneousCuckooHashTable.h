@@ -1,8 +1,9 @@
 #pragma once
 #include <vector>
+#include <cassert>
 #include <queue>
-#include "Hash.h"
 #include <Function.h>
+#include <MurmurHash64.h>
 
 struct HashedKey {
     uint64_t mhc;
@@ -12,11 +13,13 @@ struct HashedKey {
     }
 
     explicit HashedKey(const std::string &element, uint32_t seed = 0) {
-        mhc = Hash::hash(element, seed, UINT64_MAX);
+        uint64_t stringHash = util::MurmurHash64(element.data(), element.length());
+        uint64_t modified = stringHash + seed;
+        mhc = util::MurmurHash64(&modified, sizeof(uint64_t));
     }
 
     [[nodiscard]] inline uint64_t hash(int hashFunctionIndex, size_t range) const {
-        return util::fastrange64(sux::function::remix(mhc + hashFunctionIndex), range);
+        return util::fastrange64(util::remix(mhc + hashFunctionIndex), range);
     }
 };
 

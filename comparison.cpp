@@ -1,9 +1,9 @@
-#include "contenders/BBHashContender.h"
-#include "contenders/CmphContender.h"
-#include "contenders/HeterogeneousContender.h"
-#include "contenders/PTHashContender.h"
-#include "contenders/RecSplitContender.h"
 #include <tlx/cmdline_parser.hpp>
+#include "benchmark/BBHashContender.h"
+#include "benchmark/CmphContender.h"
+#include "benchmark/HeterogeneousContender.h"
+#include "benchmark/PTHashContender.h"
+#include "benchmark/RecSplitContender.h"
 
 int main(int argc, char** argv) {
     double loadFactor = 0.8;

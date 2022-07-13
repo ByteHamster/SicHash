@@ -49,7 +49,7 @@ class Contender {
             std::cout<<"Testing"<<std::endl;
             performTest(keys);
             std::cout<<"Preparing query plan"<<std::endl;
-            size_t numQueries = 2e7;
+            size_t numQueries = 5e7;
             std::vector<std::string> queryPlan;
             queryPlan.reserve(numQueries);
             util::XorShift64 prng(time(nullptr));

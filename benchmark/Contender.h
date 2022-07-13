@@ -117,11 +117,12 @@ class Contender {
 
         template<typename F>
         void doPerformTest(const std::vector<std::string> &keys, F &hashFunction) {
-            std::vector<bool> taken(M);
+            double eps = 1.0001; // Rounding with load factor variables
+            std::vector<bool> taken(M * eps);
             for (size_t i = 0; i < keys.size(); i++) {
                 size_t retrieved = hashFunction(const_cast<std::string &>(keys[i]));
                 // Some contenders expect non-const keys but actually use them as const.
-                if (retrieved > M * 1.0001) {
+                if (retrieved > M * eps) {
                     std::cout << "Error: Range wrong. Hash function returned " << retrieved << std::endl;
                     return;
                 }

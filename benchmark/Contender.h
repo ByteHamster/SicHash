@@ -48,14 +48,22 @@ class Contender {
 
             std::cout<<"Testing"<<std::endl;
             performTest(keys);
+            std::cout<<"Preparing query plan"<<std::endl;
+            size_t numQueries = 2e7;
+            std::vector<std::string> queryPlan;
+            queryPlan.reserve(numQueries);
+            util::XorShift64 prng(time(nullptr));
+            for (size_t i = 0; i < numQueries; i++) {
+                queryPlan.push_back(keys[prng(N)]);
+            }
             std::cout << "Cooldown" << std::endl;
             usleep(1000*1000);
             std::cout<<"Querying"<<std::endl;
             begin = std::chrono::steady_clock::now();
-            performQueries(keys);
+            performQueries(queryPlan);
             end = std::chrono::steady_clock::now();
             long queryTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-            printResult((double) sizeBits() / N, constructionTime, queryTime);
+            printResult((double) sizeBits() / N, constructionTime, queryTime, numQueries);
         }
 
         static std::vector<std::string> generateInputData(size_t N) {
@@ -84,12 +92,14 @@ class Contender {
             return inputData;
         }
 
-        void printResult(double bitsPerElement, long constructionTimeMilliseconds, long queryTimeMilliseconds) {
+        void printResult(double bitsPerElement, long constructionTimeMilliseconds,
+                         long queryTimeMilliseconds, size_t numQueries) {
             std::cout << "RESULT"
                       << " name=" << name()
                       << " bitsPerElement=" << bitsPerElement
                       << " constructionTimeMilliseconds=" << constructionTimeMilliseconds
                       << " queryTimeMilliseconds=" << queryTimeMilliseconds
+                      << " numQueries=" << numQueries
                       << " N=" << N
                       << " loadFactor=" << loadFactor
                       << std::endl;

@@ -56,6 +56,8 @@ void recSplitTestMulti(size_t N) {
 }
 
 void recSplitContenderRunner(size_t N) {
+    recSplitTestMulti<3>(N);
+    recSplitTestMulti<4>(N);
     recSplitTestMulti<5>(N);
     recSplitTestMulti<6>(N);
     recSplitTestMulti<7>(N);

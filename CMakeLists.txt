@@ -17,6 +17,7 @@ add_library(Ribbon SHARED include/SimpleRibbon.cpp)
 target_include_directories(Ribbon PRIVATE extlib/ribbon/DySECT)
 target_include_directories(Ribbon PRIVATE extlib/ribbon/ips2ra/include)
 target_include_directories(Ribbon PUBLIC extlib/ribbon/tlx)
+target_include_directories(Ribbon PUBLIC extlib/ribbon)
 target_link_libraries(Ribbon PRIVATE tlx ips2ra)
 target_link_libraries(SicHash INTERFACE Ribbon)
 

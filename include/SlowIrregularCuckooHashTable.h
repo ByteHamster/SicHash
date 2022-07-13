@@ -1,15 +1,16 @@
 #pragma once
 #include <stdexcept>
-#include "HeterogeneousCuckooHashTable.h"
+#include "IrregularCuckooHashTable.h"
 
+namespace sichash {
 /**
  * This cuckoo hash table is used for certain types of benchmarks that do NOT measure timing.
- * The implementation is more flexible than HeterogeneousCuckooHashTable
+ * The implementation is more flexible than IrregularCuckooHashTable
  * (as it supports a more flexible number of hash functions)
  * but is not optimized for performance.
  * It also supports incremental insertion.
  */
-class HeterogeneousCuckooHashTableTest {
+class SlowIrregularCuckooHashTable {
     public:
         struct TableEntry {
             HashedKey hash;
@@ -24,19 +25,19 @@ class HeterogeneousCuckooHashTableTest {
         size_t numEntries = 0;
         std::vector<std::pair<uint64_t, uint8_t>> thresholds;
     public:
-        explicit HeterogeneousCuckooHashTableTest(size_t M, std::vector<std::pair<uint64_t, uint8_t>> &thresholds_, size_t maxEntries)
+        explicit SlowIrregularCuckooHashTable(size_t M, std::vector<std::pair<uint64_t, uint8_t>> &thresholds_, size_t maxEntries)
                 : M(M), thresholds(thresholds_) {
             heap = new TableEntry[maxEntries];
             cells.resize(M, nullptr);
             displacements = 0;
         }
 
-        ~HeterogeneousCuckooHashTableTest() {
+        ~SlowIrregularCuckooHashTable() {
             delete heap;
         }
 
         static std::string name() {
-            return "HeterogeneousCuckooHashTableTest";
+            return "SlowIrregularCuckooHashTable";
         }
 
         bool insert(HashedKey hash) {
@@ -74,3 +75,4 @@ class HeterogeneousCuckooHashTableTest {
             return false;
         }
 };
+} // Namespace sichash

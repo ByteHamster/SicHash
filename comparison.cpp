@@ -1,7 +1,7 @@
 #include <tlx/cmdline_parser.hpp>
 #include "benchmark/BBHashContender.h"
 #include "benchmark/CmphContender.h"
-#include "benchmark/HeterogeneousContender.h"
+#include "benchmark/SicHashContender.h"
 #include "benchmark/PTHashContender.h"
 #include "benchmark/RecSplitContender.h"
 
@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
 
     bbHashContenderRunner(N, loadFactor);
     cmphContenderRunner(N, loadFactor);
-    heterogeneousContenderRunner(N, loadFactor);
+    sicHashContenderRunner(N, loadFactor);
     ptHashContenderRunner(N, loadFactor);
     if (recsplit) {
         recSplitContenderRunner(N);

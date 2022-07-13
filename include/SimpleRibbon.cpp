@@ -1,6 +1,5 @@
 #include "SimpleRibbon.h"
-#ifdef SIMPLE_RIBBON
-#include "../extlib/ribbon/ribbon.hpp"
+#include <ribbon.hpp>
 
 template<size_t coeff_bits, size_t result_bits>
 struct RetrievalConfig : public ribbon::RConfig<coeff_bits, result_bits,
@@ -12,7 +11,7 @@ struct RetrievalConfig : public ribbon::RConfig<coeff_bits, result_bits,
 };
 
 template<size_t bits, size_t coeff_bits>
-SimpleRibbon<bits, coeff_bits>::SimpleRibbon(std::vector<std::pair<uint64_t, uint8_t>> &data) {
+sichash::SimpleRibbon<bits, coeff_bits>::SimpleRibbon(std::vector<std::pair<uint64_t, uint8_t>> &data) {
     using Config = RetrievalConfig<coeff_bits, /*result_bits*/ bits>;
     using RibbonT = ribbon::ribbon_filter</*depth*/ 2, Config>;
 
@@ -25,7 +24,7 @@ SimpleRibbon<bits, coeff_bits>::SimpleRibbon(std::vector<std::pair<uint64_t, uin
 }
 
 template<size_t bits, size_t coeff_bits>
-SimpleRibbon<bits, coeff_bits>::~SimpleRibbon() {
+sichash::SimpleRibbon<bits, coeff_bits>::~SimpleRibbon() {
     using Config = RetrievalConfig<coeff_bits, /*result_bits*/ bits>;
     using RibbonT = ribbon::ribbon_filter</*depth*/ 2, Config>;
 
@@ -35,7 +34,7 @@ SimpleRibbon<bits, coeff_bits>::~SimpleRibbon() {
 }
 
 template<size_t bits, size_t coeff_bits>
-uint8_t SimpleRibbon<bits, coeff_bits>::retrieve(uint64_t key) {
+uint8_t sichash::SimpleRibbon<bits, coeff_bits>::retrieve(uint64_t key) {
     using Config = RetrievalConfig<coeff_bits, /*result_bits*/ bits>;
     using RibbonT = ribbon::ribbon_filter</*depth*/ 2, Config>;
 
@@ -43,7 +42,7 @@ uint8_t SimpleRibbon<bits, coeff_bits>::retrieve(uint64_t key) {
 }
 
 template<size_t bits, size_t coeff_bits>
-std::size_t SimpleRibbon<bits, coeff_bits>::size() {
+std::size_t sichash::SimpleRibbon<bits, coeff_bits>::size() {
     using Config = RetrievalConfig<coeff_bits, /*result_bits*/ bits>;
     using RibbonT = ribbon::ribbon_filter</*depth*/ 2, Config>;
 
@@ -51,12 +50,10 @@ std::size_t SimpleRibbon<bits, coeff_bits>::size() {
     return static_cast<RibbonT*>(ribbon)->Size();
 }
 
-template class SimpleRibbon<1, 32>;
-template class SimpleRibbon<2, 32>;
-template class SimpleRibbon<3, 32>;
+template class sichash::SimpleRibbon<1, 32>;
+template class sichash::SimpleRibbon<2, 32>;
+template class sichash::SimpleRibbon<3, 32>;
 
-template class SimpleRibbon<1, 64>;
-template class SimpleRibbon<2, 64>;
-template class SimpleRibbon<3, 64>;
-
-#endif
+template class sichash::SimpleRibbon<1, 64>;
+template class sichash::SimpleRibbon<2, 64>;
+template class sichash::SimpleRibbon<3, 64>;

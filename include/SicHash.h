@@ -1,10 +1,11 @@
 #pragma once
 #include <vector>
-#include "HeterogeneousCuckooHashTable.h"
+#include "IrregularCuckooHashTable.h"
 #include "SimpleRibbon.h"
 #include <EliasFano.h>
 
-struct HeterogeneousPerfectHashingConfig {
+namespace sichash {
+struct SicHashConfig {
     uint64_t threshold1 = UINT64_MAX / 100 * 50; // 50%
     uint64_t threshold2 = UINT64_MAX / 100 * 25; // 25%
     double loadFactor = 0.9;
@@ -29,10 +30,10 @@ struct HeterogeneousPerfectHashingConfig {
 };
 
 template<bool minimal=false, size_t ribbonWidth=64>
-class HeterogeneousCuckooPerfectHashing {
+class SicHash {
     public:
         static constexpr size_t HASH_FUNCTION_BUCKET_ASSIGNMENT = 42;
-        HeterogeneousPerfectHashingConfig config;
+        SicHashConfig config;
         size_t numSmallTables;
         size_t N;
         std::vector<size_t> smallTableOffsets;
@@ -43,14 +44,14 @@ class HeterogeneousCuckooPerfectHashing {
         std::vector<size_t> emptySlots;
         util::EliasFano<3> minimalRemap;
 
-        HeterogeneousCuckooPerfectHashing(const std::vector<std::string> &keys,
-                                          HeterogeneousPerfectHashingConfig _config)
+        SicHash(const std::vector<std::string> &keys,
+                SicHashConfig _config)
                   : config(_config), N(keys.size()),
                         minimalRemap(minimal ? (N / config.loadFactor - N) : 0, minimal ? N : 0) {
             numSmallTables = keys.size() / config.smallTableSize + 1;
-            std::vector<HeterogeneousCuckooHashTable> tables;
+            std::vector<IrregularCuckooHashTable> tables;
             tables.reserve(numSmallTables);
-            HeterogeneousCuckooConfig cuckooConfig;
+            IrregularCuckooHashTableConfig cuckooConfig;
             cuckooConfig.threshold1 = config.threshold1;
             cuckooConfig.threshold2 = config.threshold2;
             cuckooConfig.maxEntries = config.smallTableSize * 1.2;
@@ -75,7 +76,7 @@ class HeterogeneousCuckooPerfectHashing {
             maps[0b111].reserve(keys.size() * config.class3Percentage());
             size_t sizePrefix = 0;
             size_t unnecessaryConstructions = 0;
-            for (HeterogeneousCuckooHashTable &table : tables) {
+            for (IrregularCuckooHashTable &table : tables) {
                 size_t tableM = table.size() / config.loadFactor;
                 size_t seed = 0;
                 while (!table.construct(tableM, seed)) {
@@ -89,7 +90,7 @@ class HeterogeneousCuckooPerfectHashing {
                 smallTableOffsets.push_back(sizePrefix);
 
                 for (size_t i = 0; i < table.size(); i++) {
-                    HeterogeneousCuckooHashTable::TableEntry &entry = table.heap[i];
+                    IrregularCuckooHashTable::TableEntry &entry = table.heap[i];
                     maps[entry.hashFunctionMask].emplace_back(entry.hash.mhc, entry.hashFunctionIndex);
                 }
                 if constexpr (minimal) {
@@ -174,3 +175,4 @@ class HeterogeneousCuckooPerfectHashing {
             return result;
         }
 };
+} // Namespace sichash

@@ -1,10 +1,10 @@
 #include <chrono>
 #include <tlx/cmdline_parser.hpp>
-#include <HeterogeneousCuckooPerfectHashing.h>
+#include <SicHash.h>
 #include "benchmark/BenchmarkData.h"
 
 int main(int argc, char** argv) {
-    HeterogeneousPerfectHashingConfig config;
+    sichash::SicHashConfig config;
     size_t N = 1e7;
     int t1 = 50;
     int t2 = 10;
@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
 
     size_t spaceUsage;
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    HeterogeneousCuckooPerfectHashing perfectHashing(keys, config);
+    sichash::SicHash perfectHashing(keys, config);
     spaceUsage = perfectHashing.spaceUsage();
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     long constructionTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();

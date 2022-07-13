@@ -1,26 +1,26 @@
 #pragma once
 
-#include <HeterogeneousCuckooPerfectHashing.h>
+#include <SicHash.h>
 #include "Contender.h"
 
 template<bool minimal, size_t ribbonWidth>
-class HeterogeneousContender : public Contender {
+class SicHashContender : public Contender {
     public:
-        HeterogeneousCuckooPerfectHashing<minimal, ribbonWidth> *perfectHashing = nullptr;
-        HeterogeneousPerfectHashingConfig config;
+        sichash::SicHash<minimal, ribbonWidth> *perfectHashing = nullptr;
+        sichash::SicHashConfig config;
 
-        HeterogeneousContender(size_t N, double loadFactor, int threshold1, int threshold2)
+        SicHashContender(size_t N, double loadFactor, int threshold1, int threshold2)
                 : Contender(N, minimal ? 1.0 : loadFactor) {
             config.thresholdsPercentage(threshold1, threshold2);
             config.loadFactor = loadFactor;
         }
 
-        ~HeterogeneousContender() {
+        ~SicHashContender() {
             delete perfectHashing;
         }
 
         std::string name() override {
-            return std::string("Heterogeneous")
+            return std::string("SicHash")
                    + " minimal=" + std::to_string(minimal)
                    + " lf=" + std::to_string(config.loadFactor) // Internal load factor
                    + " t1=" + std::to_string(config.class1Percentage())
@@ -29,7 +29,7 @@ class HeterogeneousContender : public Contender {
         }
 
         void construct(const std::vector<std::string> &keys) override {
-            perfectHashing = new HeterogeneousCuckooPerfectHashing<minimal, ribbonWidth>(keys, config);
+            perfectHashing = new sichash::SicHash<minimal, ribbonWidth>(keys, config);
         }
 
         size_t sizeBits() override {
@@ -45,17 +45,17 @@ class HeterogeneousContender : public Contender {
         }
 };
 
-void heterogeneousContenderRunner(size_t N, double loadFactor) {
+void sicHashContenderRunner(size_t N, double loadFactor) {
     int jStepSize;
     int iStepSize;
     for (int i = 25; i <= 70; i += iStepSize) {
         iStepSize = i > 60 ? 2 : 4;
         jStepSize = i > 55 ? 3 : 8;
         for (int j = 20; j <= 45 && i + j <= 100; j += jStepSize) {
-            {HeterogeneousContender<false, 32>(N, loadFactor, i, j).run();}
-            {HeterogeneousContender<false, 64>(N, loadFactor, i, j).run();}
-            {HeterogeneousContender<true, 32>(N, loadFactor, i, j).run();}
-            {HeterogeneousContender<true, 64>(N, loadFactor, i, j).run();}
+            {SicHashContender<false, 32>(N, loadFactor, i, j).run();}
+            {SicHashContender<false, 64>(N, loadFactor, i, j).run();}
+            {SicHashContender<true, 32>(N, loadFactor, i, j).run();}
+            {SicHashContender<true, 64>(N, loadFactor, i, j).run();}
         }
     }
 }

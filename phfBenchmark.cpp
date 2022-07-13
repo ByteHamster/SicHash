@@ -1,13 +1,13 @@
 #include <chrono>
 #include <tlx/cmdline_parser.hpp>
-#include <HeterogeneousCuckooPerfectHashing.h>
+#include <SicHash.h>
 #include "benchmark/BenchmarkData.h"
 
 /**
  * Uses the performance optimized implementation.
  */
 int main(int argc, char** argv) {
-    HeterogeneousPerfectHashingConfig config;
+    sichash::SicHashConfig config;
     size_t numReps = 1;
     size_t N = 1e7;
 
@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
             std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
             try {
                 for (size_t reps = 0; reps < numReps; reps++) {
-                    HeterogeneousCuckooPerfectHashing perfectHashing(keys, config);
+                    sichash::SicHash perfectHashing(keys, config);
                     spaceUsage = perfectHashing.spaceUsage();
                 }
             } catch (const std::exception& e) {

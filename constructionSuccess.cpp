@@ -1,5 +1,5 @@
 #include <tlx/cmdline_parser.hpp>
-#include <HeterogeneousCuckooHashTableTest.h>
+#include <SlowIrregularCuckooHashTable.h>
 #include "benchmark/BenchmarkData.h"
 
 /**
@@ -38,10 +38,10 @@ int main(int argc, char** argv) {
     for (size_t iteration = 0; iteration < iterations; iteration++) {
         std::vector<std::string> keys = generateInputData(N);
         std::cout << "Testing iteration " << iteration << std::flush;
-        HeterogeneousCuckooHashTableTest hashTable(M, thresholds, N);
+        sichash::SlowIrregularCuckooHashTable hashTable(M, thresholds, N);
         bool success;
         for (size_t i = 0; i < N; i++) {
-            success = hashTable.insert(HashedKey(keys[i]));
+            success = hashTable.insert(sichash::HashedKey(keys[i]));
             if (!success) {
                 break;
             }

@@ -1,16 +1,16 @@
-#include <HeterogeneousCuckooPerfectHashing.h>
+#include <SicHash.h>
 #include "benchmark/Contender.h"
 
 template <bool minimal>
 void performTest(size_t N, double loadFactor, int threshold1, int threshold2) {
     std::cout<<"Testing N="<<N<<", loadFactor="<<loadFactor<<", minimal="<<minimal
                 <<", t1="<<threshold1<<", t2="<<threshold2<<std::endl;
-    HeterogeneousPerfectHashingConfig config;
+    sichash::SicHashConfig config;
     config.thresholdsPercentage(threshold1, threshold2);
     config.loadFactor = loadFactor;
     std::cout.setstate(std::ios_base::failbit); // Suppress output
     std::vector<std::string> keys = Contender::generateInputData(N);
-    HeterogeneousCuckooPerfectHashing<minimal> perfectHashing(keys, config);
+    sichash::SicHash<minimal> perfectHashing(keys, config);
     std::cout.clear();
     size_t M = minimal ? N : (N / loadFactor);
     std::vector<bool> taken(M);

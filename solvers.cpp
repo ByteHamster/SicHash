@@ -1,5 +1,6 @@
 #include <chrono>
-#include <HeterogeneousCuckooHashTable.h>
+#include <IrregularCuckooHashTable.h>
+#include <IrregularCuckooHashTableHK.h>
 #include "benchmark/BenchmarkData.h"
 
 template <typename HashTable>
@@ -8,13 +9,13 @@ void plotConstructionPerformanceByLoadFactor() {
     std::vector<std::string> keys = generateInputData(M);
     for (double loadFactor = 0.8; loadFactor <= 0.98; loadFactor += 0.002) {
         size_t N = loadFactor * M;
-        HeterogeneousCuckooConfig config;
+        sichash::IrregularCuckooHashTableConfig config;
         config.maxEntries = N;
         config.threshold1 = UINT64_MAX / 100 * 50;
         config.threshold2 = UINT64_MAX / 100 * 75;
         HashTable hashTable(config);
         for (size_t i = 0; i < N; i++) {
-            hashTable.prepare(HashedKey(keys[i]));
+            hashTable.prepare(sichash::HashedKey(keys[i]));
         }
         // Rough estimate to balance time needed for each test iteration
         const size_t requiredNumberOfSuccessfulConstructions = 100000 * (1.05 - loadFactor) * (1.05 - loadFactor);
@@ -45,7 +46,7 @@ void plotConstructionPerformanceByLoadFactor() {
 }
 
 int main() {
-    plotConstructionPerformanceByLoadFactor<RandomWalkCuckooHashTable>();
-    plotConstructionPerformanceByLoadFactor<HopcroftKarpMatchingCuckooHashTable>();
+    plotConstructionPerformanceByLoadFactor<sichash::IrregularCuckooHashTable>();
+    plotConstructionPerformanceByLoadFactor<sichash::HopcroftKarpMatchingCuckooHashTable>();
     return 0;
 }

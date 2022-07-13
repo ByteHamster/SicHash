@@ -37,6 +37,10 @@ add_executable(PhfBenchmark phfBenchmark.cpp)
 target_link_libraries(PhfBenchmark PRIVATE PerfectHashingMethods)
 target_compile_features(PhfBenchmark PRIVATE cxx_std_20)
 
+add_executable(PhfBenchmarkSingle phfBenchmarkSingle.cpp)
+target_link_libraries(PhfBenchmarkSingle PRIVATE PerfectHashingMethods)
+target_compile_features(PhfBenchmarkSingle PRIVATE cxx_std_20)
+
 add_executable(UnitTest unitTest.cpp)
 target_link_libraries(UnitTest PRIVATE PerfectHashingMethods)
 target_compile_features(UnitTest PRIVATE cxx_std_20)

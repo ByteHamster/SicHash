@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
     }
     std::vector<std::string> keys = generateInputData(N);
 
-    for (int i = 50; i <= 75; i += 1) {
+    for (int i = 45; i <= 75; i += 1) {
         for (int j = 20; j <= 45 && i + j <= 100; j += 1) {
             config.thresholdsPercentage(i, j);
             size_t spaceUsage;

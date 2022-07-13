@@ -49,7 +49,7 @@ class PTHashContender : public Contender {
 };
 
 void ptHashContenderRunner(size_t N, double loadFactor) {
-    for (double c = 3.0; c < 8.1; c += 0.5) {
+    for (double c = 3.0; c < 8.1; c += 0.3) {
         PTHashContender<false>(N, loadFactor, c).run();
         PTHashContender<true>(N, loadFactor, c).run();
     }

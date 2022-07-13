@@ -45,6 +45,8 @@ class RecSplitContender : public Contender {
 
 template <int l>
 void recSplitTestMulti(size_t N) {
+    {RecSplitContender<l>(N, l).run();}
+    {RecSplitContender<l>(N, 2 * l).run();}
     {RecSplitContender<l>(N, 50).run();}
     {RecSplitContender<l>(N, 100).run();}
     {RecSplitContender<l>(N, 250).run();}
@@ -56,6 +58,7 @@ void recSplitTestMulti(size_t N) {
 }
 
 void recSplitContenderRunner(size_t N) {
+    recSplitTestMulti<2>(N);
     recSplitTestMulti<3>(N);
     recSplitTestMulti<4>(N);
     recSplitTestMulti<5>(N);

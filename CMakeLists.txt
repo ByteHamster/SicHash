@@ -61,17 +61,9 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     target_link_libraries(ConstructionSuccess PRIVATE SicHash)
     target_compile_features(ConstructionSuccess PRIVATE cxx_std_20)
 
-    add_executable(PhfBenchmark phfBenchmark.cpp)
-    target_link_libraries(PhfBenchmark PRIVATE SicHash)
-    target_compile_features(PhfBenchmark PRIVATE cxx_std_20)
-
-    add_executable(PhfBenchmarkSingle phfBenchmarkSingle.cpp)
-    target_link_libraries(PhfBenchmarkSingle PRIVATE SicHash)
-    target_compile_features(PhfBenchmarkSingle PRIVATE cxx_std_20)
-
-    add_executable(UnitTest unitTest.cpp)
-    target_link_libraries(UnitTest PRIVATE SicHash)
-    target_compile_features(UnitTest PRIVATE cxx_std_20)
+    add_executable(SicHashBenchmark sicHashBenchmark.cpp)
+    target_link_libraries(SicHashBenchmark PRIVATE SicHash)
+    target_compile_features(SicHashBenchmark PRIVATE cxx_std_20)
 
     add_executable(MaxLoadFactor maxLoadFactor.cpp)
     target_link_libraries(MaxLoadFactor PRIVATE SicHash)

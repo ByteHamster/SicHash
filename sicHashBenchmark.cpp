@@ -14,6 +14,7 @@ int main(int argc, char** argv) {
     cmd.add_double('l', "loadFactor", config.loadFactor, "Load factor of the table, usually between 0.8 and 0.99");
     cmd.add_int('1', "percentage2", t1, "Threshold for objects with 2 choices");
     cmd.add_int('2', "percentage4", t2, "Threshold for objects with 4 choices");
+    cmd.add_bytes('b', "bucketSize", config.smallTableSize, "Size of the small buckets (cuckoo hash tables)");
     if (!cmd.process(argc, argv)) {
         return 1;
     }
@@ -32,6 +33,7 @@ int main(int argc, char** argv) {
               << " t1=" << config.class1Percentage()
               << " t2=" << config.class2Percentage()
               << " spaceUsage=" << (double) spaceUsage / keys.size()
+              << " bucketSize=" << config.smallTableSize
               << " constructionTimeMillis=" << constructionTime
               << std::endl;
     return 0;

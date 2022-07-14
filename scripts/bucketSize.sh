@@ -1,7 +1,7 @@
 #!/bin/bash
 hostname
-strings PhfBenchmark | grep fPIC
+strings SicHashBenchmark | grep fPIC
 
-for bucketSize in $(seq 2000 2000 12000); do
-  ./PhfBenchmark --numKeys 3M --bucketSize $bucketSize --repetitions 3 --loadFactor 0.95
+for bucketSize in $(seq 500 500 10000); do
+  ./SicHashBenchmark --numKeys 5M --bucketSize $bucketSize --loadFactor 0.95 --percentage2 46 --percentage4 32
 done

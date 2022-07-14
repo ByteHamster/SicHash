@@ -24,6 +24,7 @@ class Contender {
         virtual void construct(const std::vector<std::string> &keys) = 0;
 
         virtual void beforeConstruction(const std::vector<std::string> &keys) {
+            (void) keys;
         }
         virtual void performQueries(const std::vector<std::string> &keys) = 0;
         virtual void performTest(const std::vector<std::string> &keys) = 0;

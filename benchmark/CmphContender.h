@@ -42,6 +42,7 @@ class CmphContender : public Contender {
         }
 
         void construct(const std::vector<std::string> &keys) override {
+            (void) keys;
             //Create mphf
             cmph_config_t *config = cmph_config_new(source);
             cmph_config_set_algo(config, algo);

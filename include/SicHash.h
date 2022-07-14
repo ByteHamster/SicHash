@@ -148,7 +148,7 @@ class SicHash {
             size_t bytes = ribbon1->size() + ribbon2->size() + ribbon3->size()
                     + smallTableOffsets.size() * sizeof(size_t)
                     + smallTableSeeds.size() * sizeof(uint8_t);
-            if (minimal) {
+            if constexpr (minimal) {
                 bytes += minimalRemap.space();
             }
             return bytes * 8;

@@ -24,6 +24,7 @@ class RecSplitContender : public Contender {
         }
 
         void beforeConstruction(const std::vector<std::string> &keys) override {
+            (void) keys;
         }
 
         void construct(const std::vector<std::string> &keys) override {

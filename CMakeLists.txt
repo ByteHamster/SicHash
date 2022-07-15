@@ -44,6 +44,12 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     target_include_directories(Sux SYSTEM INTERFACE extlib/sux)
     target_link_libraries(PerfectHashingCompetitors INTERFACE Sux)
 
+    add_custom_command(OUTPUT ${CMAKE_SOURCE_DIR}/extlib/mphf-wbpm/lib/libmphfwbpm.a COMMAND make -j4 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/extlib/mphf-wbpm)
+    add_custom_target(MphfWbpm DEPENDS ${CMAKE_SOURCE_DIR}/extlib/mphf-wbpm/lib/libmphfwbpm.a)
+    add_dependencies(PerfectHashingCompetitors MphfWbpm)
+    target_link_libraries(PerfectHashingCompetitors INTERFACE ${CMAKE_SOURCE_DIR}/extlib/mphf-wbpm/lib/libmphfwbpm.a)
+    target_include_directories(PerfectHashingCompetitors SYSTEM INTERFACE extlib/mphf-wbpm/include)
+
     ################### Benchmark build targets ###################
     add_executable(Comparison comparison.cpp)
     target_link_libraries(Comparison PRIVATE PerfectHashingCompetitors)

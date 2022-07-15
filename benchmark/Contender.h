@@ -76,7 +76,7 @@ class Contender {
                 if ((i % (N/7)) == 0) {
                     std::cout<<"\rGenerating input: "<<100l*i/N<<"%"<<std::flush;
                 }
-                int length = 10 + prng((30 - 10) * 2);
+                size_t length = 10 + prng((30 - 10) * 2);
                 for (std::size_t k = 0; k < (length + sizeof(uint64_t))/sizeof(uint64_t); ++k) {
                     ((uint64_t*) string)[k] = prng();
                 }

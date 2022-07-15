@@ -19,3 +19,6 @@
 [submodule "extlib/util"]
 	path = extlib/util
 	url = git@github.com:ByteHamster/Util.git
+[submodule "extlib/mphf-wbpm"]
+	path = extlib/mphf-wbpm
+	url = git@github.com:weaversa/MPHF-WBPM.git

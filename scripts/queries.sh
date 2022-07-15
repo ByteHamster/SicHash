@@ -12,3 +12,9 @@ strings ComparisonN | grep fPIC
 ./ComparisonN --numKeys 200M
 ./ComparisonN --numKeys 500M
 ./ComparisonN --numKeys 1G
+
+./ComparisonN --numKeys 1M    --mphfWbpmOnly
+./ComparisonN --numKeys 2M    --mphfWbpmOnly
+./ComparisonN --numKeys 5M    --mphfWbpmOnly
+./ComparisonN --numKeys 10M   --mphfWbpmOnly
+./ComparisonN --numKeys 20M   --mphfWbpmOnly

@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
         std::vector<std::string> keys = generateInputData(N);
         std::cout << "Testing iteration " << iteration << std::flush;
         sichash::SlowIrregularCuckooHashTable hashTable(M, thresholds, N);
-        bool success;
+        bool success = true;
         for (size_t i = 0; i < N; i++) {
             success = hashTable.insert(sichash::HashedKey(keys[i]));
             if (!success) {

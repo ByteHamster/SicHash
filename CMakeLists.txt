@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.16)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 project(SicHash)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Release" AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    add_compile_options(-march=native)
+endif()
+
 add_library(SicHash INTERFACE)
 target_include_directories(SicHash INTERFACE include)
 target_compile_features(SicHash INTERFACE cxx_std_20)

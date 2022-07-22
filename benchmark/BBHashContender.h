@@ -62,7 +62,7 @@ class BBHashContender : public Contender {
 };
 
 void bbHashContenderRunner(size_t N, double loadFactor) {
-    for (double gamma = 1.0; gamma <= 3.0; gamma += 0.15) {
+    for (double gamma = 1.0; gamma <= 2.0; gamma += 0.15) {
         for (double perc_elem_loaded = 0.05; perc_elem_loaded < 1.0; perc_elem_loaded += 0.8) {
             BBHashContender(N, loadFactor, gamma, perc_elem_loaded).run();
         }

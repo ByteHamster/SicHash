@@ -54,7 +54,7 @@ class SicHash {
             IrregularCuckooHashTableConfig cuckooConfig;
             cuckooConfig.threshold1 = config.threshold1;
             cuckooConfig.threshold2 = config.threshold2;
-            cuckooConfig.maxEntries = config.smallTableSize * 1.2;
+            cuckooConfig.maxEntries = config.smallTableSize * 1.2 + 100;
             for (size_t i = 0; i < numSmallTables; i++) {
                 tables.emplace_back(cuckooConfig);
             }

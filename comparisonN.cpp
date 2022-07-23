@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
             {MphfWbpmContender(N, MPHFEfficientParameters).run();}
         } else {
             {RecSplitContender<7>(N, 250).run();}
-            PTHashContender<false>(N, 0.95, 3.7).run();
+            {PTHashContender<false>(N, 0.95, 3.7).run();}
             {SicHashContender<false, 64>(N, 0.95, 46, 32).run();}
             {CmphContender(N, 0.95, "CHD", CMPH_CHD_PH, 0.95, 5, false).run();}
         }

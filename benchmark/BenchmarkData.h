@@ -19,7 +19,7 @@ std::vector<std::string> generateInputData(size_t N) {
         // Repair null bytes
         for (std::size_t k = 0; k < length; ++k) {
             if (string[k] == 0) {
-                string[k] = 1 + prng(255);
+                string[k] = 1 + prng(254);
             }
         }
         string[length] = 0;

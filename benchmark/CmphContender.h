@@ -77,14 +77,29 @@ class CmphContender : public Contender {
         }
 };
 
-void cmphContenderRunner(size_t N, double loadFactor) {
+void chdContenderRunner(size_t N, double loadFactor) {
     for (int b = 1; b < 8; b++) {
         {CmphContender(N, loadFactor, "CHD", CMPH_CHD_PH, loadFactor, b, false).run();} // b=keys_per_bucket
         {CmphContender(N, loadFactor, "CHD", CMPH_CHD, loadFactor, b, true).run();} // b=keys_per_bucket
+    }
+}
+
+void bdzContenderRunner(size_t N, double loadFactor) {
+    for (int b = 1; b < 8; b++) {
         if (loadFactor <= 0.8) {CmphContender(N, loadFactor, "BDZ", CMPH_BDZ, 1.0/loadFactor, b, true).run();} // b=number of bits of k
     }
     if (loadFactor <= 0.8) {CmphContender(N, loadFactor, "BDZ", CMPH_BDZ_PH, 1.0/loadFactor, 0, false).run();} // b ignored
+}
+
+void bmzContenderRunner(size_t N, double loadFactor) {
     {CmphContender(N, loadFactor, "BMZ", CMPH_BMZ, loadFactor, 0, true).run();} // b ignored
+}
+
+void chmContenderRunner(size_t N, double loadFactor) {
     {CmphContender(N, loadFactor, "CHM", CMPH_CHM, loadFactor, 0, true).run();} // b ignored
+}
+
+void fchContenderRunner(size_t N, double loadFactor) {
     {CmphContender(N, loadFactor, "FCH", CMPH_FCH, loadFactor, 0, true).run();} // b ignored // Hangs
 }
+

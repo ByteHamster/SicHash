@@ -27,7 +27,7 @@ class HopcroftKarpMatchingCuckooHashTable {
         }
 
         ~HopcroftKarpMatchingCuckooHashTable() {
-            delete heap;
+            delete[] heap;
         }
 
         static std::string name() {

@@ -56,7 +56,7 @@ class IrregularCuckooHashTable {
         }
 
         ~IrregularCuckooHashTable() {
-            delete heap;
+            delete[] heap;
         }
 
         static std::string name() {

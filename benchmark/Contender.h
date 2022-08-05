@@ -15,6 +15,7 @@ class Contender {
         const double loadFactor;
         const double mByN;
         const size_t M;
+        static size_t numQueries;
 
         Contender(size_t N, double loadFactor)
                 : N(N), loadFactor(loadFactor), mByN(1.0 / loadFactor), M(N * mByN) {
@@ -51,7 +52,6 @@ class Contender {
             std::cout<<"Testing"<<std::endl;
             performTest(keys);
             std::cout<<"Preparing query plan"<<std::endl;
-            size_t numQueries = 5e7;
             std::vector<std::string> queryPlan;
             queryPlan.reserve(numQueries);
             util::XorShift64 prng(time(nullptr));
@@ -111,3 +111,4 @@ class Contender {
             }
         }
 };
+size_t Contender::numQueries = 5e7;

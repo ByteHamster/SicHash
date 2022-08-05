@@ -23,6 +23,7 @@ int main(int argc, char** argv) {
     tlx::CmdlineParser cmd;
     cmd.add_double('l', "loadFactor", loadFactor, "Load Factor");
     cmd.add_bytes('n', "numKeys", N, "Number of objects");
+    cmd.add_bytes('q', "numQueries", Contender::numQueries, "Number of queries to perform");
 
     cmd.add_flag('r', "recsplit", recsplit, "Execute RecSplit benchmark");
     cmd.add_flag('m', "mphfWbpm", mphfWbpm, "Execute mphfWbpm benchmark");

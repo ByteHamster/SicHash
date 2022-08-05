@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     }
     for (size_t i = 0; i < iterations; i++) {
         if (mphfWbpmOnly) {
-            {MphfWbpmContender(N, MPHFEfficientParameters).run();}
+            {MphfWbpmContender(N, MPHFFastParameters).run();}
         } else {
             {RecSplitContender<7>(N, 250).run();}
             {PTHashContender<false>(N, 0.95, 3.7).run();}

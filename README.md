@@ -1,16 +1,26 @@
 # SicHash
 
-A (Minimum) Perfect Hash Function based on irregular cuckoo hashing and retrieval.
+A (Minimum) Perfect Hash Function based on irregular cuckoo hashing, retrieval, and overloading.
 
-### Building the examples
+### Building the examples and benchmarks
 
 ```
-git clone --recursive git@github.com:ByteHamster/SicHash.git
 mkdir SicHash/build
 cd SicHash/build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j
 ```
+
+### Benchmarks in Docker Container
+We provide a docker file to reproduce a small number of experiments inside a docker container.
+
+```
+cd scripts
+sudo docker-compose up
+```
+
+The resulting measurements are then available in the `scripts/dockerVolume` folder.
+Building and running the container on an average PC takes about 90 minutes.
 
 ### Library usage
 

@@ -1,0 +1,8 @@
+version: "3.0"
+services:
+  sichash:
+    build:
+      context: ..
+      dockerfile: scripts/Dockerfile
+    volumes:
+        - ./dockerVolume:/opt/dockerVolume # Measurement script and output directory.

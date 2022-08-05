@@ -57,7 +57,8 @@ class MphfWbpmContender : public Contender {
 };
 
 void mphfWbpmContenderRunner(size_t N) {
-    {MphfWbpmContender(N, MPHFEfficientParameters).run();}
+    {MphfWbpmContender(N, MPHFDWPaperParameters).run();}
+    {MphfWbpmContender(N, MPHFDWFastParameters).run();}
     {MphfWbpmContender(N, MPHFPaperParameters).run();}
     {MphfWbpmContender(N, MPHFFastParameters).run();}
 }

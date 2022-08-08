@@ -36,8 +36,10 @@ int main(int argc, char** argv) {
     size_t displacementSum = 0;
     size_t successfulSeeds = 0;
     for (size_t iteration = 0; iteration < iterations; iteration++) {
+        // Flooding stdout takes more time than actual calculations for small N
+        std::cout.setstate(std::ios_base::failbit);
         std::vector<std::string> keys = generateInputData(N);
-        std::cout << "Testing iteration " << iteration << std::flush;
+        std::cout.clear();
         sichash::SlowIrregularCuckooHashTable hashTable(M, thresholds, N);
         bool success = true;
         for (size_t i = 0; i < N; i++) {
@@ -46,7 +48,6 @@ int main(int argc, char** argv) {
                 break;
             }
         }
-        std::cout << ", success: " << success << std::endl;
         if (success) {
             displacementSum += hashTable.displacements;
             successfulSeeds++;
@@ -58,8 +59,9 @@ int main(int argc, char** argv) {
     }
     std::cout << " N=" << N
               << " M=" << M
-              << " displacements=" << (successfulSeeds == 0 ? 0 : (double)displacementSum / (double)successfulSeeds)
-              << " success=" << successfulSeeds;
+              << " iterations=" << iterations
+              << " success=" << successfulSeeds
+              << " displacements=" << (successfulSeeds == 0 ? 0 : (double)displacementSum / (double)successfulSeeds);
     for (size_t i = 2; i <= 8; i++) {
         std::cout << " percentage" << i << "=" << thresholds_[i];
     }

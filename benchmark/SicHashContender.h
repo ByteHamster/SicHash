@@ -3,10 +3,10 @@
 #include <SicHash.h>
 #include "Contender.h"
 
-template<bool minimal, size_t ribbonWidth>
+template<bool minimal, size_t ribbonWidth, int minimalFanoLowerBits = 3>
 class SicHashContender : public Contender {
     public:
-        sichash::SicHash<minimal, ribbonWidth> *perfectHashing = nullptr;
+        sichash::SicHash<minimal, ribbonWidth, minimalFanoLowerBits> *perfectHashing = nullptr;
         sichash::SicHashConfig config;
 
         SicHashContender(size_t N, double loadFactor, int threshold1, int threshold2)
@@ -29,7 +29,7 @@ class SicHashContender : public Contender {
         }
 
         void construct(const std::vector<std::string> &keys) override {
-            perfectHashing = new sichash::SicHash<minimal, ribbonWidth>(keys, config);
+            perfectHashing = new sichash::SicHash<minimal, ribbonWidth, minimalFanoLowerBits>(keys, config);
         }
 
         size_t sizeBits() override {
@@ -50,8 +50,17 @@ void sicHashContenderRunner(size_t N, double loadFactor) {
         for (int j = 20; j <= 45 && i + j <= 100; j += 3) {
             {SicHashContender<false, 32>(N, loadFactor, i, j).run();}
             {SicHashContender<false, 64>(N, loadFactor, i, j).run();}
-            {SicHashContender<true, 32>(N, loadFactor, i, j).run();}
-            {SicHashContender<true, 64>(N, loadFactor, i, j).run();}
+
+            if (loadFactor < 0.89) {
+                {SicHashContender<true, 32, 3>(N, loadFactor, i, j).run();}
+                {SicHashContender<true, 64, 3>(N, loadFactor, i, j).run();}
+            } else if (loadFactor < 0.94) {
+                {SicHashContender<true, 32, 4>(N, loadFactor, i, j).run();}
+                {SicHashContender<true, 64, 4>(N, loadFactor, i, j).run();}
+            } else {
+                {SicHashContender<true, 32, 5>(N, loadFactor, i, j).run();}
+                {SicHashContender<true, 64, 5>(N, loadFactor, i, j).run();}
+            }
         }
     }
 }

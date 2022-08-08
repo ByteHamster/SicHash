@@ -29,7 +29,17 @@ struct SicHashConfig {
     }
 };
 
-template<bool minimal=false, size_t ribbonWidth=64>
+/**
+ * SicHash perfect hash function.
+ * @tparam minimal Remap values >N to empty slots to get a MPHF
+ * @tparam ribbonWidth Tuning parameter for the ribbon retrieval data structure. Usually 64 or 32.
+ * @tparam minimalFanoLowerBits Number of lower bits in the EliasFano coding for remapping.
+ *                              Only interesting for minimal=true. See paper for details.
+ *                              loadFactor < ~0.89 ==> use minimalFanoLowerBits=3
+ *                              loadFactor < ~0.94 ==> use minimalFanoLowerBits=4
+ *                              loadFactor < ~0.97 ==> use minimalFanoLowerBits=5
+ */
+template<bool minimal=false, size_t ribbonWidth=64, int minimalFanoLowerBits = 3>
 class SicHash {
     public:
         static constexpr size_t HASH_FUNCTION_BUCKET_ASSIGNMENT = 42;
@@ -42,7 +52,7 @@ class SicHash {
         SimpleRibbon<2, ribbonWidth> *ribbon2 = nullptr;
         SimpleRibbon<3, ribbonWidth> *ribbon3 = nullptr;
         std::vector<size_t> emptySlots;
-        util::EliasFano<3> minimalRemap;
+        util::EliasFano<minimalFanoLowerBits> minimalRemap;
 
         SicHash(const std::vector<std::string> &keys,
                 SicHashConfig _config)

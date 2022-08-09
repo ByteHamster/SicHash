@@ -39,4 +39,3 @@ int main(int argc, char** argv) {
               << std::endl;
     return 0;
 }
-:w

@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
     std::vector<std::string> keys = generateInputData(N);
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    sichash::SicHash perfectHashing(keys, config);
+    sichash::SicHash sicHashTable(keys, config);
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     long constructionTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
 
@@ -31,10 +31,12 @@ int main(int argc, char** argv) {
               << " N=" << N
               << " t1=" << config.class1Percentage()
               << " t2=" << config.class2Percentage()
-              << " spaceUsage=" << (double) perfectHashing.spaceUsage() / keys.size()
-              << " spaceUsageTheory=" << (double) perfectHashing.spaceUsageTheory() / keys.size()
+              << " spaceUsage=" << (double) sicHashTable.spaceUsage() / keys.size()
+              << " spaceUsageTheory=" << (double) sicHashTable.spaceUsageTheory() / keys.size()
               << " bucketSize=" << config.smallTableSize
+              << " averageTries=" << (double) sicHashTable.unnecessaryConstructions / sicHashTable.numSmallTables
               << " constructionTimeMillis=" << constructionTime
               << std::endl;
     return 0;
 }
+:w

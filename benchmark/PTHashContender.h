@@ -4,12 +4,12 @@
 #undef MAX_BUCKET_SIZE
 #include "Contender.h"
 
-template <bool minimal>
+template <bool minimal, typename encoder>
 class PTHashContender : public Contender {
     public:
         double c;
         double internalLoadFactor;
-        pthash::single_phf<pthash::murmurhash2_64, pthash::elias_fano, minimal> pthashFunction;
+        pthash::single_phf<pthash::murmurhash2_64, encoder, minimal> pthashFunction;
 
         PTHashContender(size_t N, double loadFactor, double c)
                 : Contender(N, minimal ? 1.0 : loadFactor), c(c), internalLoadFactor(loadFactor) {
@@ -19,6 +19,7 @@ class PTHashContender : public Contender {
             return std::string("PTHash")
                     + " minimal=" + std::to_string(minimal)
                     + " c=" + std::to_string(c)
+                    + " encoder=" + encoder::name()
                     + " lf=" + std::to_string(internalLoadFactor);
         }
 
@@ -51,7 +52,11 @@ class PTHashContender : public Contender {
 
 void ptHashContenderRunner(size_t N, double loadFactor) {
     for (double c = 3.0; c < 8.1; c += 0.3) {
-        PTHashContender<false>(N, loadFactor, c).run();
-        PTHashContender<true>(N, loadFactor, c).run();
+        PTHashContender<false, pthash::elias_fano>(N, loadFactor, c).run();
+        PTHashContender<true, pthash::elias_fano>(N, loadFactor, c).run();
+        PTHashContender<false, pthash::dictionary_dictionary>(N, loadFactor, c).run();
+        PTHashContender<true, pthash::dictionary_dictionary>(N, loadFactor, c).run();
+        PTHashContender<false, pthash::dictionary_elias_fano>(N, loadFactor, c).run();
+        PTHashContender<true, pthash::dictionary_elias_fano>(N, loadFactor, c).run();
     }
 }

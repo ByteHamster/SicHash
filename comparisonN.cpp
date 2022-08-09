@@ -23,8 +23,8 @@ int main(int argc, char** argv) {
             {MphfWbpmContender(N, MPHFFastParameters).run();}
         } else {
             {RecSplitContender<7>(N, 250).run();}
-            {PTHashContender<false>(N, 0.95, pthashParameter).run();}
-            {PTHashContender<true>(N, 0.95, pthashParameter).run();}
+            {PTHashContender<false, pthash::elias_fano>(N, 0.95, pthashParameter).run();}
+            {PTHashContender<true, pthash::elias_fano>(N, 0.95, pthashParameter).run();}
             {SicHashContender<false, 64>(N, 0.95, 46, 32).run();}
             {SicHashContender<true, 64>(N, 0.9, 43, 44).run();}
             {CmphContender(N, 0.95, "CHD", CMPH_CHD_PH, 0.95, 5, false).run();}

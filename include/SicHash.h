@@ -46,11 +46,12 @@ template<bool minimal=false, size_t ribbonWidth=64, int minimalFanoLowerBits = 3
 class SicHash {
     public:
         static constexpr size_t HASH_FUNCTION_BUCKET_ASSIGNMENT = 42;
+        using seed_t = uint8_t;
         SicHashConfig config;
         size_t numSmallTables;
         size_t N;
         std::vector<size_t> smallTableOffsets;
-        std::vector<uint8_t> smallTableSeeds;
+        std::vector<seed_t> smallTableSeeds;
         SimpleRibbon<1, ribbonWidth> *ribbon1 = nullptr;
         SimpleRibbon<2, ribbonWidth> *ribbon2 = nullptr;
         SimpleRibbon<3, ribbonWidth> *ribbon3 = nullptr;
@@ -96,7 +97,7 @@ class SicHash {
                 while (!table.construct(tableM, seed)) {
                     unnecessaryConstructions++;
                     seed++;
-                    if (seed >= 255) {
+                    if (seed >= std::numeric_limits<seed_t>::max()) {
                         throw std::logic_error("Selected thresholds that cannot be constructed");
                     }
                 }
@@ -161,7 +162,7 @@ class SicHash {
         [[nodiscard]] size_t spaceUsage() const {
             size_t bytes = ribbon1->size() + ribbon2->size() + ribbon3->size()
                     + smallTableOffsets.size() * sizeof(size_t)
-                    + smallTableSeeds.size() * sizeof(uint8_t);
+                    + smallTableSeeds.size() * sizeof(seed_t);
             if constexpr (minimal) {
                 bytes += minimalRemap.space();
             }

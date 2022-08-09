@@ -24,6 +24,9 @@ struct SicHashConfig {
     }
 
     void thresholdsPercentage(size_t percentage1, size_t percentage2) {
+        if (percentage1 + percentage2 > 100) {
+            throw std::logic_error("Selected thresholds have >100%");
+        }
         threshold1 = UINT64_MAX / 100 * percentage1;
         threshold2 = UINT64_MAX / 100 * (percentage1 + percentage2);
     }
@@ -53,6 +56,7 @@ class SicHash {
         SimpleRibbon<3, ribbonWidth> *ribbon3 = nullptr;
         std::vector<size_t> emptySlots;
         util::EliasFano<minimalFanoLowerBits> minimalRemap;
+        size_t unnecessaryConstructions = 0;
 
         SicHash(const std::vector<std::string> &keys,
                 SicHashConfig _config)
@@ -85,7 +89,7 @@ class SicHash {
             maps[0b011].reserve(keys.size() * config.class2Percentage());
             maps[0b111].reserve(keys.size() * config.class3Percentage());
             size_t sizePrefix = 0;
-            size_t unnecessaryConstructions = 0;
+            unnecessaryConstructions = 0;
             for (IrregularCuckooHashTable &table : tables) {
                 size_t tableM = table.size() / config.loadFactor;
                 size_t seed = 0;
@@ -162,6 +166,29 @@ class SicHash {
                 bytes += minimalRemap.space();
             }
             return bytes * 8;
+        }
+
+        /** Theoretic space usage when pretending to encode bucket metadata with Rice and Elias-Fano */
+        [[nodiscard]] size_t spaceUsageTheory() const {
+            size_t bytes = ribbon1->size() + ribbon2->size() + ribbon3->size();
+            if constexpr (minimal) {
+                bytes += minimalRemap.space();
+            }
+
+            size_t efN = smallTableOffsets.size();
+            size_t efBits = 2 * efN;
+            efBits += efN * std::ceil(std::log2((double) smallTableOffsets.back() / (double)efN));
+
+            size_t golombBits = 0;
+            double averageSeed = (double)(unnecessaryConstructions+numSmallTables)/(double)numSmallTables;
+            size_t b = std::log2(averageSeed);
+            for (size_t seed : smallTableSeeds) {
+                size_t q = seed >> b;
+                // size_t r = seed - q;
+                golombBits += b; // Remainder binary coded
+                golombBits += q + 1; // Quotient unary coded
+            }
+            return bytes * 8 + efBits + golombBits;
         }
 
         size_t operator() (std::string &key) const {

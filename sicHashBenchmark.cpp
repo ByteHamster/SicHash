@@ -21,18 +21,18 @@ int main(int argc, char** argv) {
     config.thresholdsPercentage(t1, t2);
     std::vector<std::string> keys = generateInputData(N);
 
-    size_t spaceUsage;
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     sichash::SicHash perfectHashing(keys, config);
-    spaceUsage = perfectHashing.spaceUsage();
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     long constructionTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+
     std::cout << "RESULT"
               << " loadFactor=" << config.loadFactor
               << " N=" << N
               << " t1=" << config.class1Percentage()
               << " t2=" << config.class2Percentage()
-              << " spaceUsage=" << (double) spaceUsage / keys.size()
+              << " spaceUsage=" << (double) perfectHashing.spaceUsage() / keys.size()
+              << " spaceUsageTheory=" << (double) perfectHashing.spaceUsageTheory() / keys.size()
               << " bucketSize=" << config.smallTableSize
               << " constructionTimeMillis=" << constructionTime
               << std::endl;

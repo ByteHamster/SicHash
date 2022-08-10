@@ -12,8 +12,3 @@ strings ComparisonN | grep fPIC
 ./ComparisonN --pthashParameter 4.30 --numKeys 50M
 ./ComparisonN --pthashParameter 4.45 --numKeys 100M
 ./ComparisonN --pthashParameter 4.60 --numKeys 200M
-
-./ComparisonN --numKeys 1M    --mphfWbpmOnly
-./ComparisonN --numKeys 2M    --mphfWbpmOnly
-./ComparisonN --numKeys 5M    --mphfWbpmOnly
-./ComparisonN --numKeys 10M   --mphfWbpmOnly

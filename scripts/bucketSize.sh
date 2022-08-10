@@ -7,6 +7,9 @@ function runBenchmark() {
   exec 5>&1
   R=$(./SicHashBenchmark --numKeys 5M --bucketSize "$1" --loadFactor 0.9 --percentage2 "$2" --percentage4 "$3"|tee >(cat - >&5))
   averageTries=$(echo "$R" | sed -n 's/\(.*\)averageTries=\([0-9.]*\) \(.*\)/\2/p')
+  if [[ "$averageTries" == "" ]]; then
+    averageTries="1000"
+  fi
 }
 
 for i in $(seq 40 2 85); do

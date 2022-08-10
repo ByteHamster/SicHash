@@ -22,11 +22,15 @@ int main(int argc, char** argv) {
         if (mphfWbpmOnly) {
             {MphfWbpmContender(N, MPHFFastParameters).run();}
         } else {
-            {RecSplitContender<7>(N, 250).run();}
+            // Queries of PTHash and SicHash have quite a bit of noise in the measurements.
+            // Run more queries to work around that.
+            Contender::numQueries = 15e7;
             {PTHashContender<false, pthash::elias_fano>(N, 0.95, pthashParameter).run();}
             {PTHashContender<true, pthash::elias_fano>(N, 0.95, pthashParameter).run();}
             {SicHashContender<false, 64>(N, 0.95, 46, 32).run();}
-            {SicHashContender<true, 64>(N, 0.9, 43, 44).run();}
+            {SicHashContender<true, 64>(N, 0.95, 37, 44).run();}
+            Contender::numQueries = 5e7;
+            {RecSplitContender<4>(N, 100).run();}
             {CmphContender(N, 0.95, "CHD", CMPH_CHD_PH, 0.95, 5, false).run();}
         }
     }

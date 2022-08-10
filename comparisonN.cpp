@@ -8,7 +8,6 @@
 int main(int argc, char** argv) {
     size_t N = 5e6;
     size_t iterations = 1;
-    bool mphfWbpmOnly = false;
     double pthashParameter = 3.7;
     tlx::CmdlineParser cmd;
     cmd.add_bytes('n', "numKeys", N, "Number of objects");

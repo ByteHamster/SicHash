@@ -1,0 +1,18 @@
+#!/bin/bash
+hostname
+strings MaxLoadFactor | grep fPIC
+
+function repeat() {
+    repetitions=$1
+    shift
+    # shellcheck disable=SC2034
+    for i in $(seq "$repetitions"); do
+      # shellcheck disable=SC2068
+      $@
+    done
+}
+
+repeat 500 ./MaxLoadFactor -m 500  --percentage2 100
+repeat 500 ./MaxLoadFactor -m 5k   --percentage2 100
+repeat 500 ./MaxLoadFactor -m 50k  --percentage2 100
+repeat 500 ./MaxLoadFactor -m 500k --percentage2 100

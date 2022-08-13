@@ -14,10 +14,10 @@ function repeat() {
 
 # shellcheck disable=SC2068
 function runMultipleM () {
-  repeat 500 ./MaxLoadFactor -m 500  $@
-  repeat 500 ./MaxLoadFactor -m 5k   $@
-  repeat 500 ./MaxLoadFactor -m 50k  $@
-  repeat 500 ./MaxLoadFactor -m 500k $@
+  repeat 2000 ./MaxLoadFactor -m 500  $@
+  repeat 2000 ./MaxLoadFactor -m 5k   $@
+  repeat 2000 ./MaxLoadFactor -m 50k  $@
+  repeat 2000 ./MaxLoadFactor -m 500k $@
 }
 
 runMultipleM --percentage4 100

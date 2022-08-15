@@ -51,20 +51,24 @@ class Contender {
 
             std::cout<<"Testing"<<std::endl;
             performTest(keys);
-            std::cout<<"Preparing query plan"<<std::endl;
-            std::vector<std::string> queryPlan;
-            queryPlan.reserve(numQueries);
-            util::XorShift64 prng(time(nullptr));
-            for (size_t i = 0; i < numQueries; i++) {
-                queryPlan.push_back(keys[prng(N)]);
+
+            long queryTime = 0;
+            if (numQueries > 0) {
+                std::cout<<"Preparing query plan"<<std::endl;
+                std::vector<std::string> queryPlan;
+                queryPlan.reserve(numQueries);
+                util::XorShift64 prng(time(nullptr));
+                for (size_t i = 0; i < numQueries; i++) {
+                    queryPlan.push_back(keys[prng(N)]);
+                }
+                std::cout << "Cooldown" << std::endl;
+                usleep(1000*1000);
+                std::cout<<"Querying"<<std::endl;
+                begin = std::chrono::steady_clock::now();
+                performQueries(queryPlan);
+                end = std::chrono::steady_clock::now();
+                queryTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
             }
-            std::cout << "Cooldown" << std::endl;
-            usleep(1000*1000);
-            std::cout<<"Querying"<<std::endl;
-            begin = std::chrono::steady_clock::now();
-            performQueries(queryPlan);
-            end = std::chrono::steady_clock::now();
-            long queryTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
             printResult((double) sizeBits() / N, constructionTime, queryTime, numQueries);
         }
 

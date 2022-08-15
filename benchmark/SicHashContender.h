@@ -25,6 +25,8 @@ class SicHashContender : public Contender {
                    + " lf=" + std::to_string(config.loadFactor) // Internal load factor
                    + " t1=" + std::to_string(config.class1Percentage())
                    + " t2=" + std::to_string(config.class2Percentage())
+                   + " ribbonWidth=" + std::to_string(ribbonWidth)
+                   + " minimalFanoLowerBits=" + std::to_string(minimalFanoLowerBits)
                    + " bucketSize=" + std::to_string(config.smallTableSize);
         }
 

@@ -3,7 +3,6 @@
 #include "benchmark/SicHashContender.h"
 #include "benchmark/PTHashContender.h"
 #include "benchmark/RecSplitContender.h"
-#include "benchmark/MphfWbpmContender.h"
 #include "benchmark/BBHashContender.h"
 
 int main(int argc, char** argv) {
@@ -14,9 +13,12 @@ int main(int argc, char** argv) {
     cmd.add_bytes('n', "numKeys", N, "Number of objects");
     cmd.add_bytes('i', "iterations", iterations, "Number of iterations to execute");
     cmd.add_double('p', "pthashParameter", pthashParameter, "Parameter of the pthash method");
+    cmd.add_bytes('t', "numThreads", Contender::threads, "Number of threads to use for construction. This is an emulation only. Constructs the exact same hash function multiple times.");
+
     if (!cmd.process(argc, argv)) {
         return 1;
     }
+
     for (size_t i = 0; i < iterations; i++) {
         // Queries of PTHash and SicHash have quite a bit of noise in the measurements.
         // Run more queries to work around that.

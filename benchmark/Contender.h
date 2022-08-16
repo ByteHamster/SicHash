@@ -5,6 +5,7 @@
 #include <chrono>
 #include <XorShift64.h>
 #include <unistd.h>
+#include <thread>
 #include "BenchmarkData.h"
 
 #define DO_NOT_OPTIMIZE(value) asm volatile ("" : : "r,m"(value) : "memory")
@@ -16,6 +17,7 @@ class Contender {
         const double mByN;
         const size_t M;
         static size_t numQueries;
+        static size_t threads;
 
         Contender(size_t N, double loadFactor)
                 : N(N), loadFactor(loadFactor), mByN(1.0 / loadFactor), M(N * mByN) {
@@ -39,12 +41,35 @@ class Contender {
             std::cout << "Cooldown" << std::endl;
             usleep(1000*1000);
             std::cout << "Constructing" << std::endl;
+
             std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-            try {
-                construct(keys);
-            } catch (const std::exception& e) {
-                std::cout<<"Error: "<<e.what()<<std::endl;
-                return;
+            if (threads == 1) {
+                try {
+                    construct(keys);
+                } catch (const std::exception& e) {
+                    std::cout<<"Error: "<<e.what()<<std::endl;
+                    return;
+                }
+            } else {
+                // This is an emulation only. Constructs the exact same hash function multiple times.
+                std::vector<std::thread> threadPool;
+                bool error = false;
+                for (size_t i = 0; i < threads; i++) {
+                    threadPool.push_back(std::thread([&] () {
+                        try {
+                            construct(keys);
+                        } catch (const std::exception& e) {
+                            error = true;
+                        }
+                    }));
+                }
+                for (std::thread &thread : threadPool) {
+                    thread.join();
+                }
+                if (error) {
+                    std::cout<<"Error: One of the threads failed construction"<<std::endl;
+                    return;
+                }
             }
             std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
             long constructionTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
@@ -69,17 +94,18 @@ class Contender {
                 end = std::chrono::steady_clock::now();
                 queryTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
             }
-            printResult((double) sizeBits() / N, constructionTime, queryTime, numQueries);
+            printResult((double) sizeBits() / N, constructionTime, queryTime);
         }
 
         void printResult(double bitsPerElement, long constructionTimeMilliseconds,
-                         long queryTimeMilliseconds, size_t numQueries) {
+                         long queryTimeMilliseconds) {
             std::cout << "RESULT"
                       << " name=" << name()
                       << " bitsPerElement=" << bitsPerElement
                       << " constructionTimeMilliseconds=" << constructionTimeMilliseconds
                       << " queryTimeMilliseconds=" << queryTimeMilliseconds
                       << " numQueries=" << numQueries
+                      << " threads=" << threads
                       << " N=" << N
                       << " loadFactor=" << loadFactor
                       << std::endl;
@@ -116,3 +142,4 @@ class Contender {
         }
 };
 size_t Contender::numQueries = 5e7;
+size_t Contender::threads = 1;

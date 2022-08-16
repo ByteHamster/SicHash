@@ -14,6 +14,7 @@ int main(int argc, char** argv) {
     cmd.add_bytes('i', "iterations", iterations, "Number of iterations to execute");
     cmd.add_double('p', "pthashParameter", pthashParameter, "Parameter of the pthash method");
     cmd.add_bytes('t', "numThreads", Contender::threads, "Number of threads to use for construction. This is an emulation only. Constructs the exact same hash function multiple times.");
+    cmd.add_bytes('q', "numQueries", Contender::numQueries, "Number of queries to perform");
 
     if (!cmd.process(argc, argv)) {
         return 1;

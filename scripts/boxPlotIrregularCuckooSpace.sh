@@ -16,8 +16,9 @@ function repeat() {
 function runMultipleM () {
   repeat 2000 ./MaxLoadFactor -m 500  $@
   repeat 2000 ./MaxLoadFactor -m 5k   $@
-  repeat 2000 ./MaxLoadFactor -m 50k  $@
-  repeat 2000 ./MaxLoadFactor -m 500k $@
+  # These are slower and have less variance. Only run half of the samples.
+  repeat 1000 ./MaxLoadFactor -m 50k  $@
+  repeat 1000 ./MaxLoadFactor -m 500k $@
 }
 
 runMultipleM --percentage4 100

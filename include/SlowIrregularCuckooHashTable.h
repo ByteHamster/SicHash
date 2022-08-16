@@ -62,7 +62,7 @@ class SlowIrregularCuckooHashTable {
     private:
         bool insert(TableEntry *entry) {
             size_t tries = 0;
-            while (tries < 10 * M) {
+            while (tries < 20 * M) {
                 size_t cell = entry->hash.hash(entry->hashFunctionIndex, M);
                 std::swap(entry, cells[cell]);
                 if (entry == nullptr) {

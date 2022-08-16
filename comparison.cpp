@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
         mphfWbpmContenderRunner(N);
     }
     if (bbhash) {
-        bbHashContenderRunner(N, loadFactor);
+        bbHashContenderRunner(N);
     }
     if (chd) {
         chdContenderRunner(N, loadFactor);

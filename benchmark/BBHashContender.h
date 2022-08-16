@@ -12,10 +12,9 @@ class BBHashContender : public Contender {
         std::vector<u_int64_t> mhcs;
         double gamma;
         double perc_elem_loaded;
-        double lf;
 
-        BBHashContender(size_t N, double loadFactor, double gamma, double perc_elem_loaded)
-                : Contender(N, 1.0), gamma(gamma), perc_elem_loaded(perc_elem_loaded), lf(loadFactor) {
+        BBHashContender(size_t N, double gamma, double perc_elem_loaded)
+                : Contender(N, 1.0), gamma(gamma), perc_elem_loaded(perc_elem_loaded) {
         }
 
         ~BBHashContender() {
@@ -24,7 +23,6 @@ class BBHashContender : public Contender {
 
         std::string name() override {
             return std::string("BBHash")
-                + " lf=" + std::to_string(lf)
                 + " gamma=" + std::to_string(gamma)
                 + " perc_elem_loaded=" + std::to_string(perc_elem_loaded);
         }
@@ -61,11 +59,11 @@ class BBHashContender : public Contender {
         }
 };
 
-void bbHashContenderRunner(size_t N, double loadFactor) {
+void bbHashContenderRunner(size_t N) {
     for (double gamma = 1.0; gamma <= 2.0; gamma += 0.15) {
         for (double perc_elem_loaded = 0.05; perc_elem_loaded < 1.0; perc_elem_loaded += 0.8) {
-            BBHashContender(N, loadFactor, gamma, perc_elem_loaded).run();
+            BBHashContender(N, gamma, perc_elem_loaded).run();
         }
-        BBHashContender(N, loadFactor, gamma, 0).run();
+        BBHashContender(N, gamma, 0).run();
     }
 }

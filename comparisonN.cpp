@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
         Contender::numQueries = 5e7;
         {RecSplitContender<4>(N, 100).run();}
         {CmphContender(N, 0.95, "CHD", CMPH_CHD_PH, 0.95, 5, false).run();}
-        {BBHashContender(N, 1.75, 0).run();}
+        {BBHashContender(N, 2.3, 0).run();}
     }
     return 0;
 }

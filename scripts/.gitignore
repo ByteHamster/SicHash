@@ -1,3 +1,6 @@
+dockerVolume/*.pdf
+dockerVolume/*.txt
+
 ## Core latex/pdflatex auxiliary files:
 *.vtc
 *.aux

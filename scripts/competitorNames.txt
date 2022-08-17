@@ -1,10 +1,12 @@
-RESULT store_code=cmph-BMZ					store_name=BMZ			showIn=legend	store_attr=mark=asterisk,color=colorBmz,solid
-RESULT store_code=cmph-BDZ					store_name=BDZ			showIn=legend	store_attr=mark=triangle,color=colorBdz,solid
-RESULT store_code=cmph-FCH					store_name=FCH			showIn=legend	store_attr=mark=oplus,color=colorFch,solid
-RESULT store_code=cmph-CHD					store_name=CHD			showIn=legend	store_attr=mark=x,color=colorChd,solid
-RESULT store_code=cmph-CHM					store_name=CHM			showIn=legend	store_attr=mark=+,color=colorChm,solid
-RESULT store_code=SicHash					store_name=SicHash		showIn=legend	store_attr=mark=o,color=colorHeterogeneous,solid
-RESULT store_code=PTHash					store_name=PTHash		showIn=legend	store_attr=mark=pentagon,color=colorPthash,solid
-RESULT store_code=RecSplit					store_name=RecSplit		showIn=legend	store_attr=mark=square,color=colorRecSplit,solid
-RESULT store_code=BBHash					store_name=BBHash		showIn=legend	store_attr=mark=diamond,color=colorBbhash,solid
-RESULT store_code=MphfWbpm					store_name=WBPM			showIn=legend	store_attr=mark=|,color=colorBbhash,solid
+RESULT store_code=cmph-BMZ					store_name=BMZ				showIn=legend	store_attr=mark=asterisk,color=colorBmz,solid
+RESULT store_code=cmph-BDZ					store_name=BDZ				showIn=legend	store_attr=mark=triangle,color=colorBdz,solid
+RESULT store_code=cmph-FCH					store_name=FCH				showIn=legend	store_attr=mark=oplus,color=colorFch,solid
+RESULT store_code=cmph-CHD					store_name=CHD				showIn=legend	store_attr=mark=x,color=colorChd,solid
+RESULT store_code=cmph-CHM					store_name=CHM				showIn=			store_attr=mark=|,color=colorChm,solid
+RESULT store_code=SicHash					store_name=SicHash			showIn=legend	store_attr=mark=o,color=colorHeterogeneous,solid
+RESULT store_code=SicHashMinimal			store_name=SicHash Minimal	showIn=			store_attr=mark=o,color=colorHeterogeneous,densely dotted
+RESULT store_code=PTHash					store_name=PTHash			showIn=legend	store_attr=mark=pentagon,color=colorPthash,solid
+RESULT store_code=PTHashMinimal				store_name=PTHash Minimal	showIn=			store_attr=mark=pentagon,color=colorPthash,densely dotted
+RESULT store_code=RecSplit					store_name=RecSplit			showIn=legend	store_attr=mark=square,color=colorRecSplit,solid
+RESULT store_code=BBHash					store_name=BBHash			showIn=legend	store_attr=mark=diamond,color=colorBbhash,solid
+RESULT store_code=MphfWbpm					store_name=WBPM				showIn=legend	store_attr=mark=+,color=colorBbhash,solid

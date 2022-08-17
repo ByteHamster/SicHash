@@ -1,0 +1,145 @@
+\documentclass{article}
+\usepackage[a4paper, margin=2cm]{geometry}
+\usepackage{xcolor}
+\usepackage{xspace}
+\usepackage{booktabs}
+\usepackage{dsfont}
+\usepackage{footmisc}
+\usepackage{marvosym}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage[capitalise,noabbrev]{cleveref}
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{multirow}
+\usepackage{pgfplots}
+\usepackage{subcaption}
+\usetikzlibrary{pgfplots.statistics}
+\pgfplotsset{compat=newest}
+
+\usepgfplotslibrary{groupplots}
+\pgfplotsset{every axis/.style={scale only axis}}
+
+\pgfplotsset{
+  major grid style={thin,dotted},
+  minor grid style={thin,dotted},
+  ymajorgrids,
+  yminorgrids,
+  every axis/.append style={
+    line width=0.7pt,
+    tick style={
+      line cap=round,
+      thin,
+      major tick length=4pt,
+      minor tick length=2pt,
+    },
+  },
+  legend cell align=left,
+  legend style={
+    line width=0.7pt,
+    /tikz/every even column/.append style={column sep=3mm,black},
+    /tikz/every odd column/.append style={black},
+  },
+  % move title closer
+  legend style={font=\small},
+  title style={yshift=-2pt},
+  % less space on left and right
+  enlarge x limits=0.04,
+  every tick label/.append style={font=\footnotesize},
+  every axis label/.append style={font=\small},
+  every axis y label/.append style={yshift=-1ex},
+  /pgf/number format/1000 sep={},
+  axis lines*=left,
+  xlabel near ticks,
+  ylabel near ticks,
+  axis lines*=left,
+  label style={font=\footnotesize},
+  tick label style={font=\footnotesize},
+}
+
+\title{SicHash plot}
+\date{}
+\begin{document}
+
+\definecolor{separatorColor}{HTML}{BBBBBB}
+\definecolor{color-0-100-0}{HTML}{000000}
+\definecolor{color-50-0-50}{HTML}{4DAF4A}
+\definecolor{color-33-34-33}{HTML}{984EA3}
+\definecolor{color-10-80-10}{HTML}{A65628}
+
+\begin{figure}[p]
+\begin{subfigure}[c]{0.75\textwidth}
+    \begin{tikzpicture}
+        \begin{axis}[
+            boxplot/draw direction=y,
+            xtick={0, 1, 2, 3, 1.5,
+                   5, 6, 7, 8, 6.5,
+                   10, 11, 12, 13, 11.5,
+                   15, 16, 17, 18, 16.5},
+            xticklabels={A,B,C,D,\\\\$M=500$,
+                         A,B,C,D,\\\\$M=5\,000$,
+                         A,B,C,D,\\\\$M=50\,000$,
+                         A,B,C,D,\\\\$M=500\,000$},
+            xticklabel style={align=center},
+            xtick style={draw=none},
+            yticklabel={\pgfmathprintnumber\tick\%},
+            width=12cm,
+            height=5cm,
+            ymajorgrids=false,
+            ymin=97,
+            no marks,
+        ]
+        \addplot[no marks,separatorColor,dashed,thin] coordinates { ( 4,97.01) ( 4,100) };
+        \addplot[no marks,separatorColor,dashed,thin] coordinates { ( 9,97.01) ( 9,100) };
+        \addplot[no marks,separatorColor,dashed,thin] coordinates { (14,97.01) (14,100) };
+
+        \addplot[color=color-0-100-0,dashed,thin] coordinates { (-0.8,97.677016) (18.8,97.677016) };
+        \addplot[color=color-10-80-10,dashed,thin] coordinates { (-0.8,98.111705) (18.8,98.111705) };
+        \addplot[color=color-33-34-33,dashed,thin] coordinates { (-0.8,98.8525565) (18.8,98.8525565) };
+        \addplot[color=color-50-0-50,dashed,thin] coordinates { (-0.8,99.21047014) (18.8,99.21047014) };
+
+        % IMPORT-DATA boxPlotIrregularCuckooSpace figure-1.txt
+        %% MULTIPLOT(M,ps|attr)
+        %% SELECT
+        %%     0 AS x, ROUND(100.0*loadFactor,2) AS y, M,
+        %%     printf("%d/%d/%d", percentage2, percentage4, percentage8) AS ps,
+        %%     printf("boxplot,color=color-%d-%d-%d,boxplot/draw position=%d,fill=white", percentage2, percentage4, percentage8,
+        %%              (SELECT COUNT(DISTINCT percentage2) FROM boxPlotIrregularCuckooSpace o WHERE boxPlotIrregularCuckooSpace.percentage2 > o.percentage2)
+        %%              + 5*(SELECT COUNT(DISTINCT M) FROM boxPlotIrregularCuckooSpace o WHERE boxPlotIrregularCuckooSpace.M > o.M)) AS attr
+        %% FROM boxPlotIrregularCuckooSpace
+        %% ORDER BY M,ps,y
+
+        \legend{};
+      \end{axis}
+    \end{tikzpicture}
+\end{subfigure}
+\begin{subfigure}[c]{0.24\textwidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[
+            width=2cm,
+            height=2cm,
+            legend columns=1,
+            hide axis,
+            xmin=10,
+            xmax=50,
+            ymin=0,
+            ymax=0.4,
+        ]
+        %% MULTIPLOT(title|title|attr)
+        %% SELECT
+        %%     0 AS x, 1 AS y,
+        %%     printf("%c: %d/%d/%d", CHAR(65 + (SELECT COUNT(DISTINCT percentage2) FROM boxPlotIrregularCuckooSpace o WHERE boxPlotIrregularCuckooSpace.percentage2 > o.percentage2)), percentage2, percentage4, percentage8) AS title,
+        %%     printf("color=color-%d-%d-%d", percentage2, percentage4, percentage8) AS attr
+        %% FROM boxPlotIrregularCuckooSpace
+        %% GROUP BY percentage2
+        %% ORDER BY title
+
+      \end{axis}
+    \end{tikzpicture}
+\end{subfigure}
+  \caption{Achieved load factors when running different irregular cuckoo hashing configurations, which all need the same storage space (2 bits). The configurations are described by the percentages of objects with 2/4/8 choices, having a space usage of 1/2/3 bits, respectively. The configuration 0/100/0 refers to ordinary 4-ary cuckoo hashing. Horizontal lines indicate the theoretical maximum load factor for $M\rightarrow\infty$.}
+\end{figure}
+
+\end{document}
+

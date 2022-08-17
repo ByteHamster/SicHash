@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 
-RUN apt-get update && apt-get -y upgrade
-RUN apt-get install --assume-yes --no-install-recommends ca-certificates build-essential cmake git
+RUN apt-get update
+RUN apt-get install --assume-yes --no-install-recommends ca-certificates build-essential cmake git autoconf
 RUN apt-get install --assume-yes --no-install-recommends libboost-regex-dev libsqlite3-dev
 RUN apt-get install --assume-yes --no-install-recommends texlive-latex-extra texlive-fonts-recommended texlive-latex-recommended texlive-fonts-extra
 RUN apt-get install --assume-yes --no-install-recommends libtbb-dev libxxhash-dev
@@ -23,4 +23,4 @@ RUN cmake -DCMAKE_BUILD_TYPE=Release ..
 RUN cmake --build . -j 8
 
 # Actual benchmark
-ENTRYPOINT bash /opt/dockerVolume/figure-6.sh
+CMD bash /opt/dockerVolume/figure-6.sh

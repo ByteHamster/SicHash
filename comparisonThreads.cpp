@@ -1,4 +1,5 @@
 #include <tlx/cmdline_parser.hpp>
+#include <thread>
 #include "benchmark/CmphContender.h"
 #include "benchmark/SicHashContender.h"
 #include "benchmark/PTHashContender.h"

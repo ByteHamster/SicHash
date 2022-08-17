@@ -32,7 +32,6 @@ void runMultiThread(std::function<Contender*()> generator) {
 int main(int argc, char** argv) {
     size_t N = 5e6;
     size_t iterations = 1;
-    double pthashParameter = 3.7;
     tlx::CmdlineParser cmd;
     cmd.add_bytes('n', "numKeys", N, "Number of objects");
     cmd.add_bytes('i', "iterations", iterations, "Number of iterations to execute");

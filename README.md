@@ -24,7 +24,7 @@ Different experiments can be started by changing the launch command of the docke
 | :-------------- | :---------------------------- | :----------------- |
 | 1               | /opt/dockerVolume/figure-1.sh | 10 minutes         |
 | 5               | /opt/dockerVolume/figure-5.sh | 15 minutes         |
-| 6               | /opt/dockerVolume/figure-6.sh |          |
+| 6               | /opt/dockerVolume/figure-6.sh | 45 minutes         |
 
 ```
 docker run --interactive --tty -v "$(pwd)/scripts/dockerVolume:/opt/dockerVolume" sichash /opt/dockerVolume/figure-6.sh

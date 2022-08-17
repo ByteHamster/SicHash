@@ -47,21 +47,18 @@ class SicHashContender : public Contender {
         }
 };
 
-void sicHashContenderRunner(size_t N, double loadFactor) {
-    for (int i = 25; i <= 75; i += 3) {
-        for (int j = 20; j <= 65 && i + j <= 100; j += 3) {
-            {SicHashContender<false, 32>(N, loadFactor, i, j).run();}
-            {SicHashContender<false, 64>(N, loadFactor, i, j).run();}
+template <size_t ribbonWidth>
+void sicHashContenderRunner(size_t N, double loadFactor, int deltaPercent = 3) {
+    for (int i = 25; i <= 75; i += deltaPercent) {
+        for (int j = 20; j <= 65 && i + j <= 100; j += deltaPercent) {
+            {SicHashContender<false, ribbonWidth>(N, loadFactor, i, j).run();}
 
             if (loadFactor < 0.89) {
-                {SicHashContender<true, 32, 3>(N, loadFactor, i, j).run();}
-                {SicHashContender<true, 64, 3>(N, loadFactor, i, j).run();}
+                {SicHashContender<true, ribbonWidth, 3>(N, loadFactor, i, j).run();}
             } else if (loadFactor < 0.94) {
-                {SicHashContender<true, 32, 4>(N, loadFactor, i, j).run();}
-                {SicHashContender<true, 64, 4>(N, loadFactor, i, j).run();}
+                {SicHashContender<true, ribbonWidth, 4>(N, loadFactor, i, j).run();}
             } else {
-                {SicHashContender<true, 32, 5>(N, loadFactor, i, j).run();}
-                {SicHashContender<true, 64, 5>(N, loadFactor, i, j).run();}
+                {SicHashContender<true, ribbonWidth, 5>(N, loadFactor, i, j).run();}
             }
         }
     }

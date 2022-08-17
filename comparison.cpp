@@ -19,6 +19,7 @@ int main(int argc, char** argv) {
     bool bmz = false;
     bool chm = false;
     bool fch = false;
+    bool sichashOnlyPartial = false;
 
     tlx::CmdlineParser cmd;
     cmd.add_double('l', "loadFactor", loadFactor, "Load Factor");
@@ -29,6 +30,7 @@ int main(int argc, char** argv) {
     cmd.add_flag('m', "mphfWbpm", mphfWbpm, "Execute mphfWbpm benchmark");
     cmd.add_flag('b', "bbhash", bbhash, "Execute bbhash benchmark");
     cmd.add_flag('s', "sichash", sichash, "Execute sichash benchmark");
+    cmd.add_flag('i', "sichashOnlyPartial", sichashOnlyPartial, "Ignore fast ribbon retrieval configurations and test fewer thresholds");
     cmd.add_flag('p', "pthash", pthash, "Execute pthash benchmark");
     cmd.add_flag('c', "chd", chd, "Execute chd benchmark");
     cmd.add_flag('d', "bdz", bdz, "Execute bdz benchmark");
@@ -65,7 +67,12 @@ int main(int argc, char** argv) {
         fchContenderRunner(N, loadFactor);
     }
     if (sichash) {
-        sicHashContenderRunner(N, loadFactor);
+        if (sichashOnlyPartial) {
+            sicHashContenderRunner<64>(N, loadFactor, 5);
+        } else {
+            sicHashContenderRunner<32>(N, loadFactor);
+            sicHashContenderRunner<64>(N, loadFactor);
+        }
     }
     if (pthash) {
         ptHashContenderRunner(N, loadFactor);

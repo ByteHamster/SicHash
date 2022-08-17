@@ -26,6 +26,8 @@ void runMultiThread(std::function<Contender*()> generator) {
     }
     for (size_t i = 0; i < numThreads; i++) {
         contenders.at(i)->printResult(" threads=" + std::to_string(numThreads));
+    }
+    for (size_t i = 0; i < numThreads; i++) {
         delete contenders.at(i);
     }
 }

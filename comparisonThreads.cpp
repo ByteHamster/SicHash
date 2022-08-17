@@ -16,7 +16,7 @@ void runMultiThread(std::function<Contender*()> generator) {
         contenders.push_back(generator());
     }
     for (size_t i = 0; i < numThreads; i++) {
-        threadPool.push_back(std::thread([&] () {
+        threadPool.push_back(std::thread([&contenders, i] () {
             contenders.at(i)->run(false);
         }));
     }

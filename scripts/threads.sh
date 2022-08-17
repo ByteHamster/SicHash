@@ -1,7 +1,11 @@
 #!/bin/bash
 hostname
-strings ComparisonN | grep fPIC
+strings ComparisonThreads | grep fPIC
 
-for i in $(seq 64); do
-  ./ComparisonN --pthashParameter 3.95 --numKeys 10M --numThreads "$i" --numQueries 0
+for i in $(seq 0 8 64); do
+  threads=$i
+  if [[ $threads == 0 ]]; then
+    threads=1
+  fi
+  ./ComparisonThreads --numKeys 10M --numThreads "$threads" --iterations 2 --numQueries 0
 done

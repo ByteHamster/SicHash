@@ -63,6 +63,10 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     target_link_libraries(ComparisonN PRIVATE PerfectHashingCompetitors)
     target_compile_features(ComparisonN PRIVATE cxx_std_20)
 
+    add_executable(ComparisonThreads comparisonThreads.cpp)
+    target_link_libraries(ComparisonThreads PRIVATE PerfectHashingCompetitors)
+    target_compile_features(ComparisonThreads PRIVATE cxx_std_20)
+
     add_executable(Solvers solvers.cpp)
     target_link_libraries(Solvers PRIVATE SicHash)
     target_compile_features(Solvers PRIVATE cxx_std_20)

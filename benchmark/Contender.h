@@ -17,10 +17,15 @@ class Contender {
         const double mByN;
         const size_t M;
         static size_t numQueries;
-        static size_t threads;
+        long constructionTime;
+        long queryTime;
 
         Contender(size_t N, double loadFactor)
                 : N(N), loadFactor(loadFactor), mByN(1.0 / loadFactor), M(N * mByN) {
+        }
+
+        virtual ~Contender() {
+
         }
 
         virtual std::string name() = 0;
@@ -33,7 +38,7 @@ class Contender {
         virtual void performQueries(const std::vector<std::string> &keys) = 0;
         virtual void performTest(const std::vector<std::string> &keys) = 0;
 
-        void run() {
+        void run(bool shouldPrintResult = true) {
             std::cout << name() << std::endl;
             std::vector<std::string> keys = generateInputData(N);
             beforeConstruction(keys);
@@ -43,41 +48,19 @@ class Contender {
             std::cout << "Constructing" << std::endl;
 
             std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-            if (threads == 1) {
-                try {
-                    construct(keys);
-                } catch (const std::exception& e) {
-                    std::cout<<"Error: "<<e.what()<<std::endl;
-                    return;
-                }
-            } else {
-                // This is an emulation only. Constructs the exact same hash function multiple times.
-                std::vector<std::thread> threadPool;
-                bool error = false;
-                for (size_t i = 0; i < threads; i++) {
-                    threadPool.push_back(std::thread([&] () {
-                        try {
-                            construct(keys);
-                        } catch (const std::exception& e) {
-                            error = true;
-                        }
-                    }));
-                }
-                for (std::thread &thread : threadPool) {
-                    thread.join();
-                }
-                if (error) {
-                    std::cout<<"Error: One of the threads failed construction"<<std::endl;
-                    return;
-                }
+            try {
+                construct(keys);
+            } catch (const std::exception& e) {
+                std::cout<<"Error: "<<e.what()<<std::endl;
+                return;
             }
             std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-            long constructionTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+            constructionTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
 
             std::cout<<"Testing"<<std::endl;
             performTest(keys);
 
-            long queryTime = 0;
+            queryTime = 0;
             if (numQueries > 0) {
                 std::cout<<"Preparing query plan"<<std::endl;
                 std::vector<std::string> queryPlan;
@@ -94,20 +77,21 @@ class Contender {
                 end = std::chrono::steady_clock::now();
                 queryTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
             }
-            printResult((double) sizeBits() / N, constructionTime, queryTime);
+            if (shouldPrintResult) {
+                printResult();
+            }
         }
 
-        void printResult(double bitsPerElement, long constructionTimeMilliseconds,
-                         long queryTimeMilliseconds) {
+        void printResult(std::string additional = "") {
             std::cout << "RESULT"
                       << " name=" << name()
-                      << " bitsPerElement=" << bitsPerElement
-                      << " constructionTimeMilliseconds=" << constructionTimeMilliseconds
-                      << " queryTimeMilliseconds=" << queryTimeMilliseconds
+                      << " bitsPerElement=" << ((double) sizeBits() / N)
+                      << " constructionTimeMilliseconds=" << constructionTime
+                      << " queryTimeMilliseconds=" << queryTime
                       << " numQueries=" << numQueries
-                      << " threads=" << threads
                       << " N=" << N
                       << " loadFactor=" << loadFactor
+                      << additional
                       << std::endl;
         }
 
@@ -142,4 +126,3 @@ class Contender {
         }
 };
 size_t Contender::numQueries = 5e7;
-size_t Contender::threads = 1;

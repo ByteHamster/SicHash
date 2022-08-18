@@ -82,9 +82,11 @@ class Contender {
         }
 
         void printResult(std::string additional = "") {
+            // Some competitors print stuff when determining their space consumption
+            double bitsPerElement = (double) sizeBits() / N;
             std::cout << "RESULT"
                       << " name=" << name()
-                      << " bitsPerElement=" << ((double) sizeBits() / N)
+                      << " bitsPerElement=" << bitsPerElement
                       << " constructionTimeMilliseconds=" << constructionTime
                       << " queryTimeMilliseconds=" << queryTime
                       << " numQueries=" << numQueries

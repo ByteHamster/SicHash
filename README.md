@@ -2,7 +2,7 @@
 
 A (Minimum) Perfect Hash Function based on irregular cuckoo hashing, retrieval, and overloading.
 
-This repository contains the source code and our reproducibility artifacts for SicHash.
+This folder contains the source code and our reproducibility artifacts for SicHash (ALENEX submission number 9401).
 Due to the plethora of dependencies required by our competitors, we provide an easy to use Docker image to quickly reproduce our results.
 Alternatively, you can look at the `Dockerfile` to see all libraries, tools, and commands necessary to compile SicHash and its competitors.
 
@@ -40,18 +40,3 @@ The number also refers to the figure in the paper.
 | 6               | /opt/dockerVolume/figure-6.sh | 45 minutes         |
 
 The resulting plots can be found in `scripts/dockerVolume` and are called `figure-<number>.pdf`.
-
-## Library usage
-
-Clone (with submodules) this repo and add the following to your `CMakeLists.txt`.
-For benchmarking, this repository contains a number of competitors.
-When simply adding the `SicHash` target to your project, those are not compiled.
-
-```
-add_subdirectory(path/to/SicHash)
-target_link_libraries(YourTarget PRIVATE SicHash)
-```
-
-### License
-
-This code is licensed under the [GPLv3](/LICENSE).

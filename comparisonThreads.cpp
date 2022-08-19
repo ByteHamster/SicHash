@@ -7,38 +7,54 @@
 #include "benchmark/BBHashContender.h"
 
 size_t numThreads = 1;
+size_t N = 5e6;
 /**
  * Simulation for multi-threading. Constructs independent hash functions in each thread.
  */
-void runMultiThread(std::function<Contender*()> generator) {
+void runMultiThread(const std::function<Contender*()>& generator) {
     std::vector<Contender*> contenders;
     std::vector<std::thread> threadPool;
+    threadPool.reserve(numThreads);
+    std::vector<std::vector<std::string>> inputData;
     for (size_t i = 0; i < numThreads; i++) {
         contenders.push_back(generator());
+        inputData.push_back(generateInputData(N));
+        contenders.at(i)->beforeConstruction(inputData.at(i));
     }
+    std::cout << "Cooldown" << std::endl;
+    usleep(5000*1000);
+
+    std::cout << "Constructing in parallel" << std::endl;
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     for (size_t i = 0; i < numThreads; i++) {
-        threadPool.push_back(std::thread([&contenders, i] () {
-            contenders.at(i)->run(false);
-        }));
+        threadPool.emplace_back([&contenders, &inputData, i] () {
+            contenders.at(i)->construct(inputData.at(i));
+        });
     }
     for (std::thread &thread : threadPool) {
         thread.join();
     }
-    for (size_t i = 0; i < numThreads; i++) {
-        contenders.at(i)->printResult(" threads=" + std::to_string(numThreads));
-    }
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    long constructionTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+
+    std::cout << "RESULT"
+              << " name=" << contenders.at(0)->name()
+              << " constructionTimeMilliseconds=" << constructionTime
+              << " N=" << N
+              << " threads=" << numThreads
+              << std::endl;
     for (size_t i = 0; i < numThreads; i++) {
         delete contenders.at(i);
     }
 }
 
 int main(int argc, char** argv) {
-    size_t N = 5e6;
     size_t iterations = 1;
     tlx::CmdlineParser cmd;
-    cmd.add_bytes('n', "numKeys", N, "Number of objects");
+    cmd.add_bytes('n', "numKeys", N, "Number of objects per thread");
     cmd.add_bytes('i', "iterations", iterations, "Number of iterations to execute");
-    cmd.add_bytes('t', "numThreads", numThreads, "Number of threads to use for construction. This is an emulation only. Constructs the exact same hash function multiple times.");
+    cmd.add_bytes('t', "numThreads", numThreads, "Number of threads to use for construction. "
+                             "This is an emulation only. Constructs independent hash functions in each thread.");
 
     if (!cmd.process(argc, argv)) {
         return 1;
@@ -46,8 +62,6 @@ int main(int argc, char** argv) {
 
     Contender::numQueries = 0;
     for (size_t i = 0; i < iterations; i++) {
-        // Queries of PTHash and SicHash have quite a bit of noise in the measurements.
-        // Run more queries to work around that.
         runMultiThread([&] () {
             return new PTHashContender<false, pthash::elias_fano>(N, 0.95, 3.95); });
         runMultiThread([&] () {
@@ -55,7 +69,7 @@ int main(int argc, char** argv) {
         runMultiThread([&] () {
             return new SicHashContender<false, 64>(N, 0.95, 46, 32); });
         runMultiThread([&] () {
-            return new SicHashContender<true, 64>(N, 0.95, 37, 44); });
+            return new SicHashContender<true, 64, 4>(N, 0.95, 37, 44); });
         runMultiThread([&] () {
             return new RecSplitContender<4>(N, 100); });
         runMultiThread([&] () {

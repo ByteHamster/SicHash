@@ -4,23 +4,27 @@
 #include "benchmark/SicHashContender.h"
 #include "benchmark/PTHashContender.h"
 #include "benchmark/RecSplitContender.h"
-#include "benchmark/BBHashContender.h"
 
 size_t numThreads = 1;
-size_t N = 5e6;
+size_t objectsPerThread = 5e6;
 /**
  * Simulation for multi-threading. Constructs independent hash functions in each thread.
  */
 void runMultiThread(const std::function<Contender*()>& generator) {
-    std::vector<Contender*> contenders;
     std::vector<std::thread> threadPool;
-    threadPool.reserve(numThreads);
-    std::vector<std::vector<std::string>> inputData;
+    std::vector<Contender*> contenders(numThreads);
+    std::vector<std::vector<std::string>> inputData(numThreads);
     for (size_t i = 0; i < numThreads; i++) {
-        contenders.push_back(generator());
-        inputData.push_back(generateInputData(N));
-        contenders.at(i)->beforeConstruction(inputData.at(i));
+        threadPool.emplace_back([&contenders, &inputData, i, &generator] () {
+            inputData.at(i) = generateInputData(objectsPerThread);
+            contenders.at(i) = generator();
+            contenders.at(i)->beforeConstruction(inputData.at(i));
+        });
     }
+    for (std::thread &thread : threadPool) {
+        thread.join();
+    }
+    threadPool.clear();
     std::cout << "Cooldown" << std::endl;
     usleep(5000*1000);
 
@@ -40,7 +44,7 @@ void runMultiThread(const std::function<Contender*()>& generator) {
     std::cout << "RESULT"
               << " name=" << contenders.at(0)->name()
               << " constructionTimeMilliseconds=" << constructionTime
-              << " N=" << N
+              << " objectsPerThread=" << objectsPerThread
               << " threads=" << numThreads
               << std::endl;
     for (size_t i = 0; i < numThreads; i++) {
@@ -51,7 +55,7 @@ void runMultiThread(const std::function<Contender*()>& generator) {
 int main(int argc, char** argv) {
     size_t iterations = 1;
     tlx::CmdlineParser cmd;
-    cmd.add_bytes('n', "numKeys", N, "Number of objects per thread");
+    cmd.add_bytes('n', "numKeys", objectsPerThread, "Number of objects per thread");
     cmd.add_bytes('i', "iterations", iterations, "Number of iterations to execute");
     cmd.add_bytes('t', "numThreads", numThreads, "Number of threads to use for construction. "
                              "This is an emulation only. Constructs independent hash functions in each thread.");
@@ -63,19 +67,22 @@ int main(int argc, char** argv) {
     Contender::numQueries = 0;
     for (size_t i = 0; i < iterations; i++) {
         runMultiThread([&] () {
-            return new PTHashContender<false, pthash::elias_fano>(N, 0.95, 3.95); });
+            return new PTHashContender<false, pthash::elias_fano>(objectsPerThread, 0.95, 3.95); });
         runMultiThread([&] () {
-            return new PTHashContender<true, pthash::elias_fano>(N, 0.95, 3.95); });
+            return new PTHashContender<true, pthash::elias_fano>(objectsPerThread, 0.95, 3.95); });
         runMultiThread([&] () {
-            return new SicHashContender<false, 64>(N, 0.95, 46, 32); });
+            return new SicHashContender<false, 64>(objectsPerThread, 0.95, 46, 32); });
         runMultiThread([&] () {
-            return new SicHashContender<true, 64, 4>(N, 0.95, 37, 44); });
+            return new SicHashContender<true, 64, 4>(objectsPerThread, 0.95, 37, 44); });
         runMultiThread([&] () {
-            return new RecSplitContender<4>(N, 100); });
+            return new RecSplitContender<4>(objectsPerThread, 100); });
         runMultiThread([&] () {
-            return new CmphContender(N, 0.95, "CHD", CMPH_CHD_PH, 0.95, 5, false); });
-        runMultiThread([&] () {
-            return new BBHashContender(N, 2.3, 0); });
+            return new CmphContender(objectsPerThread, 0.95, "CHD", CMPH_CHD_PH, 0.95, 5, false); });
+
+        // The built-in multi-thread solution of BBHash does not work with our simulation
+        // because then every thread locks the same file
+        // runMultiThread([&] () {
+        //    return new BBHashContender(objectsPerThread, 2.3, 0); });
     }
     return 0;
 }

@@ -17,7 +17,6 @@ RUN cmake --build . -j 8
 # Build SicHash
 COPY . /opt/sichash
 RUN mkdir /opt/sichash/build
-RUN mkdir -p /opt/testDirectory
 WORKDIR /opt/sichash/build
 RUN cmake -DCMAKE_BUILD_TYPE=Release ..
 RUN cmake --build . -j 8

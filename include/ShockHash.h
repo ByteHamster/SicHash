@@ -14,7 +14,7 @@ template<size_t expectedBucketSize, size_t expectedSeed>
 class ShockHash {
     private:
         static constexpr size_t MAX_SEED = 100000000; // To avoid endless loop when setting parameters too high
-        static constexpr size_t HASH_FUNCTION_BUCKET_ASSIGNMENT = -42;
+        static constexpr size_t HASH_FUNCTION_BUCKET_ASSIGNMENT = 424242;
         size_t N;
         size_t numBuckets;
         SimpleRibbon<1> *ribbon = nullptr;

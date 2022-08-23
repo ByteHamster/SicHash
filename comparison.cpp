@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
         }
     }
     if (shockhash) {
-        shockHashContenderRunner(N);
+        shockHashContenderRunner(N, loadFactor);
     }
     if (pthash) {
         ptHashContenderRunner(N, loadFactor);

@@ -8,7 +8,7 @@ class ShockHashContender : public Contender {
     public:
         sichash::ShockHash<bucketSize, expectedSeed> *perfectHashing = nullptr;
 
-        ShockHashContender(size_t N) : Contender(N, 1.0) {
+        ShockHashContender(size_t N, float loadFactor) : Contender(N, loadFactor) {
         }
 
         ~ShockHashContender() {
@@ -21,7 +21,7 @@ class ShockHashContender : public Contender {
         }
 
         void construct(const std::vector<std::string> &keys) override {
-            perfectHashing = new sichash::ShockHash<bucketSize, expectedSeed>(keys);
+            perfectHashing = new sichash::ShockHash<bucketSize, expectedSeed>(keys, loadFactor);
         }
 
         size_t sizeBits() override {
@@ -37,11 +37,11 @@ class ShockHashContender : public Contender {
         }
 };
 
-void shockHashContenderRunner(size_t N) {
-    {ShockHashContender<15, 75>(N).run();}
-    {ShockHashContender<17, 150>(N).run();}
-    {ShockHashContender<20, 400>(N).run();}
-    {ShockHashContender<23, 1200>(N).run();}
-    {ShockHashContender<25, 2100>(N).run();}
-    {ShockHashContender<28, 6000>(N).run();}
+void shockHashContenderRunner(size_t N, float loadFactor) {
+    {ShockHashContender<15, 10>(N, loadFactor).run();}
+    {ShockHashContender<17, 13>(N, loadFactor).run();}
+    {ShockHashContender<20, 21>(N, loadFactor).run();}
+    {ShockHashContender<23, 32>(N, loadFactor).run();}
+    {ShockHashContender<25, 43>(N, loadFactor).run();}
+    {ShockHashContender<28, 67>(N, loadFactor).run();}
 }

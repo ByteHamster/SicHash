@@ -2,13 +2,14 @@
 #include <vector>
 #include "IrregularCuckooHashTable.h"
 #include "SimpleRibbon.h"
-#include "MinimalPerfectCuckooHashTable.h"
+#include "TinyBinaryCuckooHashTable.h"
 #include <EliasFano.h>
 #include <GolombRice.h>
 
 namespace sichash {
 /**
  * ShockHash minimal perfect hash function: Small Heavily Overloaded CucKoo Hash Tables.
+ * Note that the supplied load factor is not very granular: the load factor is multiplied with the bucket size.
  */
 template<size_t expectedBucketSize, size_t expectedSeed>
 class ShockHash {
@@ -17,17 +18,18 @@ class ShockHash {
         static constexpr size_t HASH_FUNCTION_BUCKET_ASSIGNMENT = 424242;
         size_t N;
         size_t numBuckets;
+        float loadFactor;
         SimpleRibbon<1> *ribbon = nullptr;
         util::EliasFano<util::ceillog2(expectedBucketSize)> bucketOffsets;
         util::GolombRice<util::ceillog2(expectedSeed)> bucketSeeds;
     public:
 
-        ShockHash(const std::vector<std::string> &keys)
-                : N(keys.size()), numBuckets(keys.size() / expectedBucketSize),
-                  bucketOffsets(numBuckets + 1, N + 4 * expectedBucketSize), bucketSeeds(numBuckets, 2 * expectedSeed) {
+        ShockHash(const std::vector<std::string> &keys, float loadFactor)
+                : N(keys.size()), numBuckets(keys.size() / expectedBucketSize), loadFactor(loadFactor),
+                  bucketOffsets(numBuckets + 1, N*(1.0/loadFactor) + 4 * expectedBucketSize), bucketSeeds(numBuckets, 2 * expectedSeed) {
             std::vector<std::vector<HashedKey>> buckets(numBuckets);
             std::vector<std::pair<uint64_t, uint8_t>> ribbonData;
-            ribbonData.reserve(N);
+            ribbonData.reserve(N*(1.0/loadFactor));
 
             std::cout<<"Creating MHCs"<<std::endl;
             for (const std::string& str : keys) {
@@ -40,10 +42,11 @@ class ShockHash {
             size_t seedSum = 0;
             for (size_t bucket = 0; bucket < numBuckets; bucket++) {
                 size_t thisBucketSize = buckets.at(bucket).size();
+                size_t thisBucketM = thisBucketSize*(1.0/loadFactor);
                 bucketOffsets.push_back(bucketSizePrefix);
-                bucketSizePrefix += thisBucketSize;
+                bucketSizePrefix += thisBucketM;
 
-                MinimalPerfectCuckooHashTable table(thisBucketSize);
+                TinyBinaryCuckooHashTable table(thisBucketSize, thisBucketM);
                 for (HashedKey& hash : buckets.at(bucket)) {
                     table.prepare(HashedKey(hash));
                 }
@@ -53,12 +56,15 @@ class ShockHash {
                     bool success = table.construct(seed);
                     if (success) {
                         bucketSeeds.push_back(seed);
-                        for (size_t i = 0; i < thisBucketSize; i++) {
-                            size_t cell1 = table.cells[i]->hash.hash(seed, thisBucketSize);
+                        for (size_t i = 0; i < thisBucketM; i++) {
+                            if (table.cells[i] == nullptr) {
+                                continue;
+                            }
+                            size_t cell1 = table.cells[i]->hash.hash(seed, thisBucketM);
                             ribbonData.emplace_back(table.cells[i]->hash.mhc, i == cell1 ? 0 : 1);
 
                             #ifndef NDEBUG
-                                size_t cell2 = table.cells[i]->hash.hash(seed + 1, thisBucketSize);
+                                size_t cell2 = table.cells[i]->hash.hash(seed + 1, thisBucketM);
                                 assert(i == cell1 || i == cell2);
                             #endif
                         }
@@ -82,6 +88,7 @@ class ShockHash {
             std::cout<<"\rConstructing rank/select and ribbon"<<std::endl<<std::flush;
             bucketOffsets.buildRankSelect();
             bucketSeeds.buildRankSelect();
+            assert(ribbonData.size() == N);
             ribbon = new SimpleRibbon<1>(ribbonData);
         }
 

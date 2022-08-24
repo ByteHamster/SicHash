@@ -1,6 +1,3 @@
-[submodule "matching"]
-	path = extlib/weighted-bipartite-perfect-matching
-	url = git@github.com:jamespayor/weighted-bipartite-perfect-matching.git
 [submodule "ribbon"]
 	path = extlib/ribbon
 	url = git@github.com:lorenzhs/ribbon.git
@@ -9,7 +6,7 @@
 	url = git@github.com:bonitao/cmph.git
 [submodule "sux"]
 	path = extlib/sux
-	url = git@gitlab.com:ByteHamster/sux.git
+	url = git@github.com:ByteHamster-etc/sux.git
 [submodule "extlib/pthash"]
 	path = extlib/pthash
 	url = git@github.com:jermp/pthash.git

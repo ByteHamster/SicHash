@@ -52,29 +52,28 @@ class ShockHash {
                 }
 
                 uint64_t seed = 0;
-                for (; seed < MAX_SEED; seed++) {
-                    bool success = table.construct(seed);
-                    if (success) {
-                        bucketSeeds.push_back(seed);
-                        for (size_t i = 0; i < thisBucketM; i++) {
-                            if (table.cells[i] == nullptr) {
-                                continue;
-                            }
-                            size_t cell1 = table.cells[i]->hash.hash(seed, thisBucketM);
-                            ribbonData.emplace_back(table.cells[i]->hash.mhc, i == cell1 ? 0 : 1);
-
-                            #ifndef NDEBUG
-                                size_t cell2 = table.cells[i]->hash.hash(seed + 1, thisBucketM);
-                                assert(i == cell1 || i == cell2);
-                            #endif
-                        }
-                        break;
-                    }
+                while (!table.construct(seed) && seed < MAX_SEED) {
+                    seed++;
                 }
-                seedSum += seed;
                 if (seed == MAX_SEED) {
                     throw std::logic_error("Unable to construct. Selected bucket size too large.");
                 }
+
+                for (size_t i = 0; i < thisBucketM; i++) {
+                    if (table.cells[i] == nullptr) {
+                        continue;
+                    }
+                    size_t cell1 = table.cells[i]->hash.hash(seed, thisBucketM);
+                    ribbonData.emplace_back(table.cells[i]->hash.mhc, i == cell1 ? 0 : 1);
+
+                    #ifndef NDEBUG
+                        size_t cell2 = table.cells[i]->hash.hash(seed + 1, thisBucketM);
+                        assert(i == cell1 || i == cell2);
+                    #endif
+                }
+
+                bucketSeeds.push_back(seed);
+                seedSum += seed;
 
                 if (bucket % (std::min(numBuckets / 7, 1337ul)) == 0) {
                     std::cout<<"\rConstructing small buckets ("<<(int)(100.0*bucket/numBuckets)<<"%)"<<std::flush;
@@ -98,15 +97,16 @@ class ShockHash {
 
         /** Estimate for the space usage of this structure, in bits */
         [[nodiscard]] size_t spaceUsage() const {
-            float spaceEliasFano = 8.0f * bucketOffsets.space() / N;
-            float spaceGolombRice = 8.0f * bucketSeeds.space() / N;
-            float spaceRibbon = 8.0f * ribbon->size() / N;
-            std::cout << "Elias-Fano offsets: " << spaceEliasFano << std::endl;
-            std::cout << "Retrieval:          " << spaceRibbon << std::endl;
-            std::cout << "Seeds:              " << spaceGolombRice << std::endl;
-            std::cout << "Total:              " << (spaceRibbon + spaceEliasFano + spaceGolombRice) << std::endl;
+            size_t spaceOffsets = 8 * bucketOffsets.space();
+            size_t spaceSeeds = 8 * bucketSeeds.space();
+            size_t spaceRibbon = 8 * ribbon->size();
 
-            return (bucketOffsets.space() + bucketSeeds.space() + ribbon->size()) * 8;
+            std::cout << "Retrieval: " << (double) spaceRibbon / N << std::endl;
+            std::cout << "Offsets:   " << (double) spaceOffsets / N << std::endl;
+            std::cout << "Seeds:     " << (double) spaceSeeds / N << std::endl;
+            std::cout << "Total:     " << (double) (spaceRibbon + spaceOffsets + spaceSeeds) / N << std::endl;
+
+            return spaceRibbon + spaceOffsets + spaceSeeds;
         }
 
         size_t operator() (std::string &key) const {

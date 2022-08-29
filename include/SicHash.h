@@ -30,6 +30,15 @@ struct SicHashConfig {
         threshold1 = UINT64_MAX / 100 * percentage1;
         threshold2 = UINT64_MAX / 100 * (percentage1 + percentage2);
     }
+
+    void thresholdsSpaceBudget(float spaceBudget) {
+        float x = 0; // Experiments show that a value of x=0 lead to the best performance
+        float p1_min = std::max(0.0, 2.0 - spaceBudget);
+        float p1_max = (3 - spaceBudget) / 2;
+        float p1 = p1_min + (p1_max - p1_min) * x;
+        float p2 = 3 - 2*p1 - spaceBudget;
+        thresholdsPercentage(p1 * 100, p2 * 100);
+    }
 };
 
 /**

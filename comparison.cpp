@@ -70,11 +70,9 @@ int main(int argc, char** argv) {
         fchContenderRunner(N, loadFactor);
     }
     if (sichash) {
-        if (sichashOnlyPartial) {
-            sicHashContenderRunner<64>(N, loadFactor, 5);
-        } else {
+        sicHashContenderRunner<64>(N, loadFactor);
+        if (!sichashOnlyPartial) {
             sicHashContenderRunner<32>(N, loadFactor);
-            sicHashContenderRunner<64>(N, loadFactor);
         }
     }
     if (shockhash) {

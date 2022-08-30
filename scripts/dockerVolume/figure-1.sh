@@ -18,9 +18,9 @@ function runMultipleM () {
 }
 
 runMultipleM --percentage4 100 | tee figure-1.txt
-runMultipleM --percentage2 50 --percentage4  0 --percentage8 50 | tee --append figure-1.txt
-runMultipleM --percentage2 33 --percentage4 34 --percentage8 33 | tee --append figure-1.txt
-runMultipleM --percentage2 10 --percentage4 80 --percentage8 10 | tee --append figure-1.txt
+runMultipleM --percentage2 50 --percentage4 0.00 --percentage8 0.50 | tee --append figure-1.txt
+runMultipleM --percentage2 33 --percentage4 0.34 --percentage8 0.33 | tee --append figure-1.txt
+runMultipleM --percentage2 10 --percentage4 0.80 --percentage8 0.10 | tee --append figure-1.txt
 
 # Build plot
 cd /opt/sichash/scripts

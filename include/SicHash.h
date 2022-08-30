@@ -23,21 +23,45 @@ struct SicHashConfig {
         return (double) (UINT64_MAX - threshold2 - threshold1) / (double) UINT64_MAX;
     }
 
-    void thresholdsPercentage(size_t percentage1, size_t percentage2) {
-        if (percentage1 + percentage2 > 100) {
+    /**
+     * Percentages in [0, 1] of items with 2 and 4 choices (1 and 2 bits, respectively).
+     * The percentage of items with 8 choices (3 bits) is calculated automatically.
+     * Both values must be >=0 and the sum must be <=1
+     */
+    SicHashConfig &percentages(float percentage1, float percentage2) {
+        if (percentage1 + percentage2 > 1.0) {
             throw std::logic_error("Selected thresholds have >100%");
         }
-        threshold1 = UINT64_MAX / 100 * percentage1;
-        threshold2 = UINT64_MAX / 100 * (percentage1 + percentage2);
+        if (percentage1 < 0.0 || percentage2 < 0.0) {
+            throw std::logic_error("Selected negative thresholds");
+        }
+        threshold1 = UINT64_MAX * 0.99999f * percentage1;
+        threshold2 = UINT64_MAX * 0.99999f * (percentage1 + percentage2);
+        if (threshold2 < threshold1) {
+            throw std::logic_error("Overflow when determining thresholds");
+        }
+        return *this;
     }
 
-    void thresholdsSpaceBudget(float spaceBudget) {
-        float x = 0; // Experiments show that a value of x=0 lead to the best performance
+    /**
+     * Try to construct a PHF with a given space budget (in bits per key).
+     * Because we are using 1,2,3 bit retrieval data structures, the space budget must be in [1, 3].
+     * Parameter x in [0, 1] is a tuning parameter for selecting which mix of hash functions to use.
+     * High x have a higher load threshold, while low x are usually faster to construct.
+     */
+    SicHashConfig &spaceBudget(float spaceBudget, float x) {
+        if (x < 0.0 || x > 1.0) {
+            throw std::logic_error("x must be in [0, 1]");
+        }
+        if (spaceBudget < 1.0 || spaceBudget > 3.0) {
+            throw std::logic_error("space budget must be in [1, 3]");
+        }
         float p1_min = std::max(0.0, 2.0 - spaceBudget);
         float p1_max = (3 - spaceBudget) / 2;
         float p1 = p1_min + (p1_max - p1_min) * x;
         float p2 = 3 - 2*p1 - spaceBudget;
-        thresholdsPercentage(p1 * 100, p2 * 100);
+        percentages(p1, p2);
+        return *this;
     }
 };
 

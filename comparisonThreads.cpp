@@ -71,9 +71,9 @@ int main(int argc, char** argv) {
         runMultiThread([&] () {
             return new PTHashContender<true, pthash::elias_fano>(objectsPerThread, 0.95, 3.95); });
         runMultiThread([&] () {
-            return new SicHashContender<false, 64>(objectsPerThread, 0.95, 46, 32); });
+            return new SicHashContender<false, 64>(objectsPerThread, 0.95, sichash::SicHashConfig().percentages(0.46, 0.32)); });
         runMultiThread([&] () {
-            return new SicHashContender<true, 64, 4>(objectsPerThread, 0.95, 46, 32); });
+            return new SicHashContender<true, 64, 4>(objectsPerThread, 0.95, sichash::SicHashConfig().percentages(0.46, 0.32)); });
         runMultiThread([&] () {
             return new RecSplitContender<4>(objectsPerThread, 100); });
         runMultiThread([&] () {

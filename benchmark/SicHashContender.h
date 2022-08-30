@@ -9,9 +9,8 @@ class SicHashContender : public Contender {
         sichash::SicHash<minimal, ribbonWidth, minimalFanoLowerBits> *perfectHashing = nullptr;
         sichash::SicHashConfig config;
 
-        SicHashContender(size_t N, double loadFactor, int threshold1, int threshold2)
-                : Contender(N, minimal ? 1.0 : loadFactor) {
-            config.thresholdsPercentage(threshold1, threshold2);
+        SicHashContender(size_t N, double loadFactor, sichash::SicHashConfig config)
+                : Contender(N, minimal ? 1.0 : loadFactor), config(config) {
             config.loadFactor = loadFactor;
         }
 
@@ -48,17 +47,17 @@ class SicHashContender : public Contender {
 };
 
 template <size_t ribbonWidth>
-void sicHashContenderRunner(size_t N, double loadFactor, int deltaPercent = 3) {
-    for (int i = 25; i <= 75; i += deltaPercent) {
-        for (int j = 20; j <= 65 && i + j <= 100; j += deltaPercent) {
-            {SicHashContender<false, ribbonWidth>(N, loadFactor, i, j).run();}
+void sicHashContenderRunner(size_t N, double loadFactor) {
+    for (float spaceBudget = 1.4; spaceBudget < 3.0; spaceBudget += 0.05) {
+        for (float x = 0.0; x < 1.0; x += 0.2) {
+            {SicHashContender<false, ribbonWidth>(N, loadFactor, sichash::SicHashConfig().spaceBudget(spaceBudget, x)).run();}
 
             if (loadFactor < 0.89) {
-                {SicHashContender<true, ribbonWidth, 3>(N, loadFactor, i, j).run();}
+                {SicHashContender<true, ribbonWidth, 3>(N, loadFactor, sichash::SicHashConfig().spaceBudget(spaceBudget, x)).run();}
             } else if (loadFactor < 0.94) {
-                {SicHashContender<true, ribbonWidth, 4>(N, loadFactor, i, j).run();}
+                {SicHashContender<true, ribbonWidth, 4>(N, loadFactor, sichash::SicHashConfig().spaceBudget(spaceBudget, x)).run();}
             } else {
-                {SicHashContender<true, ribbonWidth, 5>(N, loadFactor, i, j).run();}
+                {SicHashContender<true, ribbonWidth, 5>(N, loadFactor, sichash::SicHashConfig().spaceBudget(spaceBudget, x)).run();}
             }
         }
     }

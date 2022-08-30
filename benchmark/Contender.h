@@ -111,16 +111,17 @@ class Contender {
             double eps = 1.0001; // Rounding with load factor variables
             std::vector<bool> taken(M * eps);
             for (size_t i = 0; i < keys.size(); i++) {
-                size_t retrieved = hashFunction(const_cast<std::string &>(keys[i]));
                 // Some contenders expect non-const keys but actually use them as const.
+                size_t retrieved = hashFunction(const_cast<std::string &>(keys[i]));
                 if (retrieved > M * eps) {
-                    std::cout << "Error: Range wrong. Hash function returned " << retrieved << std::endl;
-                    return;
+                    std::cout << "Error: Range wrong. Hash function returned " << retrieved
+                            << " but maximum should be " << (M*eps) << " (actually " << M << ")" << std::endl;
+                    throw std::logic_error("Range wrong");
                 }
                 if (taken[retrieved]) {
                     std::cout<<"Error: Collision: Key #"<<i<<"/"<<N<<" resulted in "<<retrieved<<": "<<keys[i]<<std::endl;
                     std::cout<<"Aborting query"<<std::endl;
-                    return;
+                    throw std::logic_error("Collision");
                 }
                 taken[retrieved] = true;
             }

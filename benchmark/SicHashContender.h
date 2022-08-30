@@ -11,7 +11,7 @@ class SicHashContender : public Contender {
 
         SicHashContender(size_t N, double loadFactor, sichash::SicHashConfig config)
                 : Contender(N, minimal ? 1.0 : loadFactor), config(config) {
-            config.loadFactor = loadFactor;
+            this->config.loadFactor = loadFactor;
         }
 
         ~SicHashContender() {

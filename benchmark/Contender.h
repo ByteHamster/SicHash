@@ -38,7 +38,8 @@ class Contender {
         virtual void performTest(const std::vector<std::string> &keys) = 0;
 
         void run(bool shouldPrintResult = true) {
-            std::cout << name() << std::endl;
+            std::cout << std::endl;
+            std::cout << "Contender: " << name() << std::endl;
             std::vector<std::string> keys = generateInputData(N);
             beforeConstruction(keys);
 

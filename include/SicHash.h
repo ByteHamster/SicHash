@@ -6,21 +6,22 @@
 
 namespace sichash {
 struct SicHashConfig {
-    uint64_t threshold1 = UINT64_MAX / 100 * 50; // 50%
-    uint64_t threshold2 = UINT64_MAX / 100 * 25; // 25%
+    // When constructing an MPHF, this is the load factor before compaction. Otherwise, it is simply the load factor.
     double loadFactor = 0.9;
+
+    // Expected size of each of the small cuckoo hash tables
     size_t smallTableSize = 5000;
 
-    [[nodiscard]] double class1Percentage() const {
-        return (double) threshold1 / (double) UINT64_MAX;
-    }
+    // Don't print progress to std::cout. The messages are rare, so they do not affect the measurements,
+    // but they might be annoying when using SicHash as a library.
+    bool silent = false;
 
-    [[nodiscard]] double class2Percentage() const {
-        return (double) (threshold2 - threshold1) / (double) UINT64_MAX;
-    }
+    // Main configuration parameters. Set values using .percentages() or .spaceBudget()
+    uint64_t threshold1;
+    uint64_t threshold2;
 
-    [[nodiscard]] double class3Percentage() const {
-        return (double) (UINT64_MAX - threshold2 - threshold1) / (double) UINT64_MAX;
+    SicHashConfig() {
+        percentages(0.5, 0.25);
     }
 
     /**
@@ -62,6 +63,18 @@ struct SicHashConfig {
         float p2 = 3 - 2*p1 - spaceBudget;
         percentages(p1, p2);
         return *this;
+    }
+
+    [[nodiscard]] double class1Percentage() const {
+        return (double) threshold1 / (double) UINT64_MAX;
+    }
+
+    [[nodiscard]] double class2Percentage() const {
+        return (double) (threshold2 - threshold1) / (double) UINT64_MAX;
+    }
+
+    [[nodiscard]] double class3Percentage() const {
+        return (double) (UINT64_MAX - threshold2 - threshold1) / (double) UINT64_MAX;
     }
 };
 
@@ -107,7 +120,9 @@ class SicHash {
                 tables.emplace_back(cuckooConfig);
             }
 
-            std::cout<<"Creating MHCs"<<std::endl;
+            if (!config.silent) {
+                std::cout<<"Creating MHCs"<<std::endl;
+            }
             smallTableOffsets.reserve(numSmallTables);
             smallTableSeeds.reserve(numSmallTables);
             for (const std::string &key : keys) {
@@ -116,7 +131,9 @@ class SicHash {
                 tables[smallTable].prepare(hash);
             }
 
-            std::cout<<"Inserting into Cuckoo"<<std::endl;
+            if (!config.silent) {
+                std::cout<<"Inserting into Cuckoo"<<std::endl;
+            }
             std::vector<std::vector<std::pair<uint64_t, uint8_t>>> maps; // Avoids conditional jumps later
             maps.resize(0b111 + 1);
             maps[0b001].reserve(keys.size() * config.class1Percentage());
@@ -152,16 +169,19 @@ class SicHash {
             }
 
             smallTableOffsets.push_back(sizePrefix);
-            std::cout<<"On average, the small hash tables needed to be retried "
-                    <<(double)(unnecessaryConstructions+numSmallTables)/(double)numSmallTables<<" times"<<std::endl;
-
-            std::cout<<"Constructing Ribbon"<<std::endl;
+            if (!config.silent) {
+                std::cout<<"On average, the small hash tables needed to be retried "
+                         <<(double)(unnecessaryConstructions+numSmallTables)/(double)numSmallTables<<" times"<<std::endl;
+                std::cout<<"Constructing Ribbon"<<std::endl;
+            }
             ribbon1 = new SimpleRibbon<1, ribbonWidth>(maps[0b001]);
             ribbon2 = new SimpleRibbon<2, ribbonWidth>(maps[0b011]);
             ribbon3 = new SimpleRibbon<3, ribbonWidth>(maps[0b111]);
 
             if constexpr (minimal) {
-                std::cout<<"Making minimal"<<std::endl;
+                if (!config.silent) {
+                    std::cout<<"Making minimal"<<std::endl;
+                }
                 size_t smallTableToRemap = 0;
                 while (smallTableOffsets[smallTableToRemap] < N) {
                     smallTableToRemap++;

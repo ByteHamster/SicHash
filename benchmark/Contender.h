@@ -39,7 +39,7 @@ class Contender {
 
         void run(bool shouldPrintResult = true) {
             std::cout << std::endl;
-            std::cout << "Contender: " << name() << std::endl;
+            std::cout << "Contender: " << name().substr(0, name().find(' ')) << std::endl;
             std::vector<std::string> keys = generateInputData(N);
             beforeConstruction(keys);
 

@@ -5,20 +5,25 @@
 #include <EliasFano.h>
 
 namespace sichash {
+using seed_t = uint8_t;
+
 struct SicHashConfig {
-    // When constructing an MPHF, this is the load factor before compaction. Otherwise, it is simply the load factor.
+    // Load factor of the PHF. When constructing an MPHF, this is the load factor before compaction.
     double loadFactor = 0.9;
 
-    // Expected size of each of the small cuckoo hash tables
+    // Expected size of each of the small cuckoo hash tables.
     size_t smallTableSize = 5000;
 
     // Don't print progress to std::cout. The messages are rare, so they do not affect the measurements,
     // but they might be annoying when using SicHash as a library.
     bool silent = false;
 
-    // Main configuration parameters. Set values using .percentages() or .spaceBudget()
+    // Main configuration parameters. Set values using .percentages() or .spaceBudget().
     uint64_t threshold1;
     uint64_t threshold2;
+
+    // For convenience, only set when calling .spaceBudget(). Not used during construction.
+    float x = -1;
 
     SicHashConfig() {
         percentages(0.5, 0.25);
@@ -50,7 +55,9 @@ struct SicHashConfig {
      * Parameter x in [0, 1] is a tuning parameter for selecting which mix of hash functions to use.
      * High x have a higher load threshold, while low x are usually faster to construct.
      */
-    SicHashConfig &spaceBudget(float spaceBudget, float x) {
+    SicHashConfig &spaceBudget(float spaceBudget, float _x) {
+        x = _x;
+        spaceBudget -= 8.0 * (sizeof(size_t) + sizeof(seed_t)) / smallTableSize;
         if (x < 0.0 || x > 1.0) {
             throw std::logic_error("x must be in [0, 1]");
         }
@@ -92,7 +99,6 @@ template<bool minimal=false, size_t ribbonWidth=64, int minimalFanoLowerBits = 3
 class SicHash {
     public:
         static constexpr size_t HASH_FUNCTION_BUCKET_ASSIGNMENT = 42;
-        using seed_t = uint8_t;
         SicHashConfig config;
         size_t numSmallTables;
         size_t N;

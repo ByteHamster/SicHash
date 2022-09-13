@@ -36,7 +36,7 @@ class IrregularCuckooHashTable {
     public:
         struct TableEntry {
             HashedKey hash;
-            uint8_t hashFunctionIndex = 0;
+            uint16_t hashFunctionIndex = 0;
             uint8_t hashFunctionMask = 0;
             #ifdef PRECALCULATE_HASHES
                 size_t hashes[8];
@@ -108,15 +108,17 @@ class IrregularCuckooHashTable {
             size_t tries = 0;
             while (tries < 10000) {
                 #ifdef PRECALCULATE_HASHES
-                    size_t cell = entry->hashes[entry->hashFunctionIndex];
+                    size_t cell = entry->hashes[entry->hashFunctionIndex & entry->hashFunctionMask];
                 #else
-                    size_t cell = entry->hash.hash(entry->hashFunctionIndex + seed, M);
+                    size_t cell = entry->hash.hash((entry->hashFunctionIndex & entry->hashFunctionMask) + seed, M);
                 #endif
-                std::swap(entry, cells[cell]);
+                if (cells[cell] == nullptr || entry->hashFunctionIndex >= cells[cell]->hashFunctionIndex) {
+                    std::swap(entry, cells[cell]);
+                }
                 if (entry == nullptr) {
                     return true;
                 }
-                entry->hashFunctionIndex = (entry->hashFunctionIndex + 1) & entry->hashFunctionMask;
+                entry->hashFunctionIndex++;
                 tries++;
             }
             return false;

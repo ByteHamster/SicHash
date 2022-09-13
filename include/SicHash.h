@@ -162,7 +162,7 @@ class SicHash {
 
                 for (size_t i = 0; i < table.size(); i++) {
                     IrregularCuckooHashTable::TableEntry &entry = table.heap[i];
-                    maps[entry.hashFunctionMask].emplace_back(entry.hash.mhc, entry.hashFunctionIndex);
+                    maps[entry.hashFunctionMask].emplace_back(entry.hash.mhc, entry.hashFunctionIndex & entry.hashFunctionMask);
                 }
                 if constexpr (minimal) {
                     for (size_t i = 0; i < tableM; i++) {

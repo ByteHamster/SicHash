@@ -4,6 +4,7 @@
 #include <queue>
 #include <Function.h>
 #include <MurmurHash64.h>
+#include <iostream>
 
 namespace sichash {
 struct HashedKey {
@@ -32,6 +33,7 @@ struct IrregularCuckooHashTableConfig {
 
 //#define PRECALCULATE_HASHES
 #define RATTLE_KICKING
+//#define GHOST_INSERTIONS
 
 class IrregularCuckooHashTable {
     public:
@@ -42,9 +44,12 @@ class IrregularCuckooHashTable {
             #ifdef PRECALCULATE_HASHES
                 size_t hashes[8];
             #endif
+            #ifdef GHOST_INSERTIONS
+                uint8_t ghosts = 0;
+            #endif
 
             #ifdef PRECALCULATE_HASHES
-                inline size_t precalculateHashes(size_t currSeed, size_t currM) {
+                inline void precalculateHashes(size_t currSeed, size_t currM) {
                     for (size_t h = 0; h <= hashFunctionMask; h++) {
                         hashes[h] = hash.hash(h + currSeed, currM);
                     }
@@ -53,6 +58,8 @@ class IrregularCuckooHashTable {
 
             inline size_t currentCell(size_t currSeed, size_t currM) {
                 #ifdef PRECALCULATE_HASHES
+                    (void) currSeed;
+                    (void) currM;
                     return hashes[hashFunctionIndex & hashFunctionMask];
                 #else
                     return hash.hash((hashFunctionIndex & hashFunctionMask) + currSeed, currM);
@@ -112,6 +119,24 @@ class IrregularCuckooHashTable {
                     return false;
                 }
             }
+            #ifdef GHOST_INSERTIONS
+                for (size_t i = 0; i < numEntries; i++) {
+                    for (size_t h = 0; h <= heap[i].hashFunctionMask; h++) {
+                        heap[i].hashFunctionIndex = h;
+                        size_t cell = heap[i].currentCell(seed, M);
+                        if (cells[cell] != &heap[i]) {
+                            continue; // Check next hash function
+                        }
+                        if (heap[i].ghosts == 0) {
+                           break; // Found last position
+                        }
+                        heap[i].ghosts--;
+                        cells[cell] = nullptr;
+                    }
+                    assert(heap[i].ghosts == 0);
+                    assert(cells[heap[i].currentCell(seed, M)] == &heap[i]);
+                }
+            #endif
             return true;
         }
 
@@ -120,16 +145,41 @@ class IrregularCuckooHashTable {
         }
     private:
         bool insert(TableEntry *entry) {
+            #ifdef GHOST_INSERTIONS
+                size_t placed = 0;
+                for (size_t i = 0; i <= entry->hashFunctionMask; i++) {
+                    entry->hashFunctionIndex = i;
+                    size_t cell = entry->currentCell(seed, M);
+                    if (cells[cell] == nullptr) {
+                        cells[cell] = entry;
+                        placed++;
+                    }
+                }
+                if (placed >= 1) {
+                    entry->ghosts = placed - 1;
+                    return true;
+                }
+                entry->ghosts = 0;
+            #endif
+
             size_t tries = 0;
             while (tries < 10000) {
                 size_t cell = entry->currentCell(seed, M);
-                if (cells[cell] == nullptr
-                    #ifdef RATTLE_KICKING
-                        || entry->hashFunctionIndex >= cells[cell]->hashFunctionIndex
-                    #endif
-                    ) {
+                #ifdef GHOST_INSERTIONS
+                    if (cells[cell] != nullptr && cells[cell]->ghosts > 0) {
+                        cells[cell]->ghosts--;
+                        cells[cell] = entry;
+                        return true;
+                    }
+                #endif
+                #ifdef RATTLE_KICKING
+                    if (cells[cell] == nullptr || entry->hashFunctionIndex >= cells[cell]->hashFunctionIndex) {
+                        std::swap(entry, cells[cell]);
+                    }
+                #else
                     std::swap(entry, cells[cell]);
-                }
+                #endif
+
                 if (entry == nullptr) {
                     return true;
                 }

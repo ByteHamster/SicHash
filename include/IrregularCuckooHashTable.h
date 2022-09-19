@@ -31,6 +31,7 @@ struct IrregularCuckooHashTableConfig {
 };
 
 //#define PRECALCULATE_HASHES
+#define RATTLE_KICKING
 
 class IrregularCuckooHashTable {
     public:
@@ -41,6 +42,22 @@ class IrregularCuckooHashTable {
             #ifdef PRECALCULATE_HASHES
                 size_t hashes[8];
             #endif
+
+            #ifdef PRECALCULATE_HASHES
+                inline size_t precalculateHashes(size_t currSeed, size_t currM) {
+                    for (size_t h = 0; h <= hashFunctionMask; h++) {
+                        hashes[h] = hash.hash(h + currSeed, currM);
+                    }
+                }
+            #endif
+
+            inline size_t currentCell(size_t currSeed, size_t currM) {
+                #ifdef PRECALCULATE_HASHES
+                    return hashes[hashFunctionIndex & hashFunctionMask];
+                #else
+                    return hash.hash((hashFunctionIndex & hashFunctionMask) + currSeed, currM);
+                #endif
+            }
         };
         TableEntry *heap;
         std::vector<TableEntry*> cells;
@@ -87,9 +104,7 @@ class IrregularCuckooHashTable {
             cells.resize(M, nullptr);
             #ifdef PRECALCULATE_HASHES
                 for (size_t i = 0; i < numEntries; i++) {
-                    for (size_t h = 0; h <= heap[i].hashFunctionMask; h++) {
-                        heap[i].hashes[h] = heap[i].hash.hash(h + seed, M);
-                    }
+                    heap[i].precalculateHashes(seed, M);
                 }
             #endif
             for (size_t i = 0; i < numEntries; i++) {
@@ -107,12 +122,12 @@ class IrregularCuckooHashTable {
         bool insert(TableEntry *entry) {
             size_t tries = 0;
             while (tries < 10000) {
-                #ifdef PRECALCULATE_HASHES
-                    size_t cell = entry->hashes[entry->hashFunctionIndex & entry->hashFunctionMask];
-                #else
-                    size_t cell = entry->hash.hash((entry->hashFunctionIndex & entry->hashFunctionMask) + seed, M);
-                #endif
-                if (cells[cell] == nullptr || entry->hashFunctionIndex >= cells[cell]->hashFunctionIndex) {
+                size_t cell = entry->currentCell(seed, M);
+                if (cells[cell] == nullptr
+                    #ifdef RATTLE_KICKING
+                        || entry->hashFunctionIndex >= cells[cell]->hashFunctionIndex
+                    #endif
+                    ) {
                     std::swap(entry, cells[cell]);
                 }
                 if (entry == nullptr) {

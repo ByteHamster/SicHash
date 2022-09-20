@@ -2,10 +2,12 @@
 hostname
 strings Comparison | grep fPIC
 
-./Comparison --numKeys 5M --numQueries 0 --loadFactor 0.7  --sichash --pthash --chd
-./Comparison --numKeys 5M --numQueries 0 --loadFactor 0.75 --sichash --pthash --chd
-./Comparison --numKeys 5M --numQueries 0 --loadFactor 0.8  --sichash --pthash --chd
-./Comparison --numKeys 5M --numQueries 0 --loadFactor 0.85 --sichash --pthash --chd
-./Comparison --numKeys 5M --numQueries 0 --loadFactor 0.9  --sichash --pthash --chd
-./Comparison --numKeys 5M --numQueries 0 --loadFactor 0.95 --sichash --pthash --chd
-./Comparison --numKeys 5M --numQueries 0 --loadFactor 1.0  --recsplit --bbhash
+./Comparison --numKeys 5M --numQueries 0 --loadFactor 0.800 --sichash --pthash --chd
+./Comparison --numKeys 5M --numQueries 0 --loadFactor 0.825 --sichash --pthash --chd
+./Comparison --numKeys 5M --numQueries 0 --loadFactor 0.850 --sichash --pthash --chd
+./Comparison --numKeys 5M --numQueries 0 --loadFactor 0.875 --sichash --pthash --chd
+./Comparison --numKeys 5M --numQueries 0 --loadFactor 0.900 --sichash --pthash --chd
+./Comparison --numKeys 5M --numQueries 0 --loadFactor 0.925 --sichash --pthash --chd
+./Comparison --numKeys 5M --numQueries 0 --loadFactor 0.950 --sichash --pthash --chd
+./Comparison --numKeys 5M --numQueries 0 --loadFactor 0.975 --sichash --pthash --chd
+./Comparison --numKeys 5M --numQueries 0 --loadFactor 1.000 --recsplit --bbhash

@@ -33,7 +33,7 @@ class SlowIrregularCuckooHashTable {
         }
 
         ~SlowIrregularCuckooHashTable() {
-            delete heap;
+            delete[] heap;
         }
 
         static std::string name() {

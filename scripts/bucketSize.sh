@@ -5,7 +5,7 @@ strings SicHashBenchmark | grep fPIC
 function runBenchmark() {
   export averageTries
   exec 5>&1
-  R=$(./SicHashBenchmark --numKeys 5M --bucketSize "$1" --loadFactor 0.9 --percentage2 "$2" --percentage4 "$3"|tee >(cat - >&5))
+  R=$(./SicHashBenchmark --numKeys 5M --bucketSize "$1" --loadFactor 0.9 --percentage2 "0.$2" --percentage4 "0.$3" | tee >(cat - >&5))
   averageTries=$(echo "$R" | sed -n 's/\(.*\)averageTries=\([0-9.]*\) \(.*\)/\2/p')
   if [[ "$averageTries" == "" ]]; then
     averageTries="1000"

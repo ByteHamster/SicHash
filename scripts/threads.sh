@@ -7,5 +7,5 @@ for i in $(seq 0 8 64); do
   if [[ $threads == 0 ]]; then
     threads=1
   fi
-  ./ComparisonThreads --numKeys "${threads}0M" --numThreads "$threads" --iterations 2
+  ./ComparisonThreads --numKeys 10M --numThreads "$threads" --iterations 2
 done

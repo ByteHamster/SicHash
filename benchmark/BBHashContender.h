@@ -1,6 +1,10 @@
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #include <BooPHF.h>
+#pragma GCC diagnostic pop
+
 #include <MurmurHash64.h>
 #include "Contender.h"
 

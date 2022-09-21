@@ -15,7 +15,7 @@ class TinyBinaryCuckooHashTable {
     public:
         struct TableEntry {
             HashedKey hash;
-            size_t candidateCellsXor = 0;
+            uint32_t candidateCellsXor = 0;
         };
         TableEntry *heap;
         TableEntry** cells;
@@ -56,15 +56,33 @@ class TinyBinaryCuckooHashTable {
             return numEntries;
         }
     private:
+        typedef union {
+            struct {
+                uint32_t low;
+                uint32_t high;
+            } halves;
+            uint64_t full;
+        } Union64;
+
         bool insert(TableEntry *entry) {
-            size_t cell1 = entry->hash.hash(seed, M);
-            size_t cell2 = entry->hash.hash(seed + 1, M);
+            Union64 hash;
+            hash.full = util::remix(entry->hash.mhc + seed);
+            uint32_t cell1 = util::fastrange32(hash.halves.high, M);
+            uint32_t cell2 = util::fastrange32(hash.halves.low, M);
             entry->candidateCellsXor = cell1 ^ cell2;
-            size_t currentCell = cell2;
+            if (cells[cell1] == nullptr) {
+                cells[cell1] = entry;
+                return true;
+            }
+            if (cells[cell2] == nullptr) {
+                cells[cell2] = entry;
+                return true;
+            }
+            uint32_t currentCell = cell2;
 
             size_t tries = 0;
-            while (tries < 2 * M) {
-                size_t alternativeCell = entry->candidateCellsXor ^ currentCell;
+            while (tries < M) {
+                uint32_t alternativeCell = entry->candidateCellsXor ^ currentCell;
                 std::swap(entry, cells[alternativeCell]);
                 if (entry == nullptr) {
                     return true;

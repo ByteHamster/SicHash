@@ -14,6 +14,10 @@ struct HashedKey {
         this->mhc = 0;
     }
 
+    explicit HashedKey(uint64_t mhc) {
+        this->mhc = mhc;
+    }
+
     explicit HashedKey(const std::string &element, uint32_t seed = 0) {
         uint64_t stringHash = util::MurmurHash64(element.data(), element.length());
         uint64_t modified = stringHash + seed;

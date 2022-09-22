@@ -7,14 +7,14 @@ extern "C" {
 
 class MphfWbpmContender : public Contender {
     public:
-        MPHFQuerier *mphfq;
+        MPHFQuerier *mphfq = nullptr;
         MPHFParameters sParams;
 
         MphfWbpmContender(size_t N, MPHFParameters sParams)
                 : Contender(N, 1.0), sParams(sParams) {
         }
 
-        ~MphfWbpmContender() {
+        ~MphfWbpmContender() override {
             MPHFQuerierFree(mphfq);
         }
 

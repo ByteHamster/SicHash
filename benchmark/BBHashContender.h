@@ -21,7 +21,7 @@ class BBHashContender : public Contender {
                 : Contender(N, 1.0), gamma(gamma), perc_elem_loaded(perc_elem_loaded) {
         }
 
-        ~BBHashContender() {
+        ~BBHashContender() override {
             delete bbhash;
         }
 

@@ -16,16 +16,14 @@ class Contender {
         const double mByN;
         const size_t M;
         static size_t numQueries;
-        long constructionTime;
-        long queryTime;
+        long constructionTime = 0;
+        long queryTime = 0;
 
         Contender(size_t N, double loadFactor)
                 : N(N), loadFactor(loadFactor), mByN(1.0 / loadFactor), M(N * mByN) {
         }
 
-        virtual ~Contender() {
-
-        }
+        virtual ~Contender() = default;
 
         virtual std::string name() = 0;
         virtual size_t sizeBits() = 0;

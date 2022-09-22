@@ -1,13 +1,15 @@
 #pragma once
 
 #include <cmph.h>
+
+#include <utility>
 #undef MAX_BUCKET_SIZE
 #include "Contender.h"
 
 class CmphContender : public Contender {
     public:
         cmph_t *mphf = nullptr;
-        cmph_io_adapter_t *source;
+        cmph_io_adapter_t *source = nullptr;
         const char **data;
         CMPH_ALGO algo;
         double c;
@@ -15,11 +17,11 @@ class CmphContender : public Contender {
         std::string nameP;
 
         CmphContender(size_t N, double loadFactor, std::string name, CMPH_ALGO algo, double c, int b, bool minimal)
-                : Contender(N, minimal ? 1.0 : loadFactor), algo(algo), c(c), b(b), nameP(name) {
+                : Contender(N, minimal ? 1.0 : loadFactor), algo(algo), c(c), b(b), nameP(std::move(name)) {
             data = static_cast<const char **>(malloc(N * sizeof(char*)));
         }
 
-        ~CmphContender() {
+        ~CmphContender() override {
             if (mphf != nullptr) {
                 cmph_destroy(mphf);
             }

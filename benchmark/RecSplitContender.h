@@ -13,7 +13,7 @@ class RecSplitContender : public Contender {
                 : Contender(N, 1.0), bucketSize(bucketSize) {
         }
 
-        ~RecSplitContender() {
+        ~RecSplitContender() override {
             delete recSplit;
         }
 

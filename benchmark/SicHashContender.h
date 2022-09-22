@@ -14,7 +14,7 @@ class SicHashContender : public Contender {
             this->config.loadFactor = loadFactor;
         }
 
-        ~SicHashContender() {
+        ~SicHashContender() override {
             delete perfectHashing;
         }
 

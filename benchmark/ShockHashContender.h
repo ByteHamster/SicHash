@@ -11,7 +11,7 @@ class ShockHashContender : public Contender {
         ShockHashContender(size_t N, float loadFactor) : Contender(N, loadFactor) {
         }
 
-        ~ShockHashContender() {
+        ~ShockHashContender() override {
             delete perfectHashing;
         }
 

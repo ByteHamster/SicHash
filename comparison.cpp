@@ -48,9 +48,6 @@ int main(int argc, char** argv) {
     if (recsplit) {
         recSplitContenderRunner(N);
     }
-    if (mphfWbpm) {
-        mphfWbpmContenderRunner(N);
-    }
     if (bbhash) {
         bbHashContenderRunner(N);
     }
@@ -80,6 +77,9 @@ int main(int argc, char** argv) {
     }
     if (pthash) {
         ptHashContenderRunner(N, loadFactor);
+    }
+    if (mphfWbpm) {
+        mphfWbpmContenderRunner(N);
     }
     return 0;
 }

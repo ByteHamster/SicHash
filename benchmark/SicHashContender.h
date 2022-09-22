@@ -49,7 +49,7 @@ class SicHashContender : public Contender {
 
 template <size_t ribbonWidth>
 void sicHashContenderRunner(size_t N, double loadFactor) {
-    for (float spaceBudget = 1.4; spaceBudget < 3.0; spaceBudget += 0.05) {
+    for (float spaceBudget = 1.35; spaceBudget < 3.0; spaceBudget += 0.03) {
         for (float x = 0.0; x < 1.0; x += 0.2) {
             {SicHashContender<false, ribbonWidth>(N, loadFactor, sichash::SicHashConfig().spaceBudget(spaceBudget, x)).run();}
 

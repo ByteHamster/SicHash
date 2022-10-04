@@ -30,6 +30,10 @@ target_include_directories(RibbonSorter PRIVATE extlib/ribbon/ips2ra/include)
 target_link_libraries(RibbonSorter PUBLIC tlx ips2ra)
 target_link_libraries(SicHash INTERFACE RibbonSorter)
 
+add_library(Sux INTERFACE)
+target_include_directories(Sux SYSTEM INTERFACE extlib/sux)
+target_link_libraries(SicHash INTERFACE Sux)
+
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     ###################### Competitor setup ######################
     add_library(PerfectHashingCompetitors INTERFACE)
@@ -43,10 +47,6 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     add_library(Cmph SHARED ${cmphSources})
     target_include_directories(Cmph SYSTEM INTERFACE extlib/cmph/src)
     target_link_libraries(PerfectHashingCompetitors INTERFACE Cmph)
-
-    add_library(Sux INTERFACE)
-    target_include_directories(Sux SYSTEM INTERFACE extlib/sux)
-    target_link_libraries(PerfectHashingCompetitors INTERFACE Sux)
 
     file(GLOB_RECURSE wbpmSources extlib/mphf-wbpm/**.c)
     list(FILTER wbpmSources EXCLUDE REGEX ".*(test|cli|example|xxh_x86dispatch).*")

@@ -14,8 +14,7 @@ struct HashedKey {
         this->mhc = 0;
     }
 
-    explicit HashedKey(uint64_t mhc) {
-        this->mhc = mhc;
+    explicit HashedKey(uint64_t mhc) : mhc(mhc) {
     }
 
     explicit HashedKey(const std::string &element, uint32_t seed = 0) {

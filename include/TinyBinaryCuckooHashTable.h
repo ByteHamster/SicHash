@@ -55,6 +55,17 @@ class TinyBinaryCuckooHashTable {
         [[nodiscard]] size_t size() const {
             return numEntries;
         }
+
+        static inline size_t hashToCell(HashedKey key, size_t seed, size_t range, size_t hashFunctionIndex) {
+            Union64 hash;
+            hash.full = util::remix(key.mhc + seed);
+            if (hashFunctionIndex == 0) {
+                return util::fastrange32(hash.halves.high, range);
+            } else {
+                return util::fastrange32(hash.halves.low, range);
+            }
+        }
+
     private:
         typedef union {
             struct {

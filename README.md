@@ -2,6 +2,8 @@
 
 A (Minimum) Perfect Hash Function based on irregular cuckoo hashing, retrieval, and overloading.
 
+[<img src="https://raw.githubusercontent.com/ByteHamster/SicHash/main/plots.png" alt="Plots preview" height="500">](https://arxiv.org/pdf/2210.01560)
+
 ### Library Usage
 
 Clone (with submodules) this repo and add the following to your `CMakeLists.txt`.
@@ -25,7 +27,7 @@ Run the following command to build the Docker image.
 Building the image takes about 5 minutes, as some packages (including LaTeX for the plots) have to be installed.
 
 ```bash
-docker build -t sichash .
+docker build -t sichash --no-cache .
 ```
 
 Some compiler warnings (red) are expected when building competitors and will not prevent building the image or running the experiments.

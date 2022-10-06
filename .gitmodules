@@ -1,6 +1,6 @@
 [submodule "ribbon"]
 	path = extlib/ribbon
-	url = git@github.com:lorenzhs/ribbon.git
+	url = git@github.com:lorenzhs/BuRR.git
 [submodule "cmph"]
 	path = extlib/cmph
 	url = git@github.com:bonitao/cmph.git

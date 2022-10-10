@@ -1,6 +1,6 @@
 #include <tlx/cmdline_parser.hpp>
 #include <SlowIrregularCuckooHashTable.h>
-#include "benchmark/BenchmarkData.h"
+#include "BenchmarkData.h"
 
 /**
  * Uses the implementation that is focused on flexibility and statistics.

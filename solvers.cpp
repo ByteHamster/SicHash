@@ -1,7 +1,7 @@
 #include <chrono>
 #include <IrregularCuckooHashTable.h>
 #include <IrregularCuckooHashTableHK.h>
-#include "benchmark/BenchmarkData.h"
+#include "BenchmarkData.h"
 
 template <typename HashTable>
 void plotConstructionPerformanceByLoadFactor() {

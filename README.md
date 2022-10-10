@@ -7,8 +7,6 @@ A (Minimum) Perfect Hash Function based on irregular cuckoo hashing, retrieval, 
 ### Library Usage
 
 Clone (with submodules) this repo and add the following to your `CMakeLists.txt`.
-For benchmarking, this repository contains a number of competitors.
-When simply adding the `SicHash` target to your project, those are not compiled.
 
 ```
 add_subdirectory(path/to/SicHash)
@@ -17,9 +15,11 @@ target_link_libraries(YourTarget PRIVATE SicHash)
 
 ### Reproducing Experiments
 
-This repository contains the source code and our reproducibility artifacts for SicHash.
-Due to the plethora of dependencies required by our competitors, we provide an easy to use Docker image to quickly reproduce our results.
-Alternatively, you can look at the `Dockerfile` to see all libraries, tools, and commands necessary to compile SicHash and its competitors.
+This repository contains the source code and our reproducibility artifacts for the benchmarks specific to SicHash.
+Benchmarks that compare SicHash to competitors are available in a different repository: https://github.com/ByteHamster/MPHF-Experiments
+
+We provide an easy to use Docker image to quickly reproduce our results.
+Alternatively, you can look at the `Dockerfile` to see all libraries, tools, and commands necessary to compile SicHash.
 
 #### Building the Docker Image
 
@@ -42,19 +42,17 @@ This does not require the Docker image to recompile.
 Different experiments can be started by using the following command:
 
 ```bash
-docker run --interactive --tty -v "$(pwd)/scripts/dockerVolume:/opt/dockerVolume" sichash /opt/dockerVolume/figure-<number>.sh
+docker run --interactive --tty -v "$(pwd)/scripts/dockerVolume:/opt/dockerVolume" sichash /opt/dockerVolume/figure-1.sh
 ```
 
-`<number>` should be either `1`, `5` or `6`, depending on the experiment you want to run.
 The number also refers to the figure in the paper.
 
 | Figure in paper | Launch command                | Estimated runtime  |
 | :-------------- | :---------------------------- | :----------------- |
 | 1               | /opt/dockerVolume/figure-1.sh | 10 minutes         |
-| 5               | /opt/dockerVolume/figure-5.sh | 20 minutes         |
-| 6               | /opt/dockerVolume/figure-6.sh | 45 minutes         |
 
 The resulting plots can be found in `scripts/dockerVolume` and are called `figure-<number>.pdf`.
+More experiments comparing SicHash with competitors can be found in a different repository: https://github.com/ByteHamster/MPHF-Experiments
 
 ### License
 

@@ -1,7 +1,7 @@
 #include <chrono>
 #include <tlx/cmdline_parser.hpp>
 #include <SicHash.h>
-#include "benchmark/BenchmarkData.h"
+#include "BenchmarkData.h"
 
 int main(int argc, char** argv) {
     sichash::SicHashConfig config;

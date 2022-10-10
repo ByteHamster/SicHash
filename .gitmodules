@@ -1,21 +1,9 @@
 [submodule "ribbon"]
 	path = extlib/ribbon
 	url = git@github.com:lorenzhs/BuRR.git
-[submodule "cmph"]
-	path = extlib/cmph
-	url = git@github.com:bonitao/cmph.git
 [submodule "sux"]
 	path = extlib/sux
 	url = git@github.com:ByteHamster-etc/sux.git
-[submodule "extlib/pthash"]
-	path = extlib/pthash
-	url = git@github.com:jermp/pthash.git
-[submodule "extlib/BBHash"]
-	path = extlib/BBHash
-	url = git@github.com:rizkg/BBHash.git
 [submodule "extlib/util"]
 	path = extlib/util
 	url = git@github.com:ByteHamster/Util.git
-[submodule "extlib/mphf-wbpm"]
-	path = extlib/mphf-wbpm
-	url = git@github.com:weaversa/MPHF-WBPM.git

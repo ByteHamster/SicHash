@@ -2,6 +2,8 @@
 
 A (Minimum) Perfect Hash Function based on irregular cuckoo hashing, retrieval, and overloading.
 
+[<img src="https://raw.githubusercontent.com/ByteHamster/SicHash/main/plots.png" alt="Plots preview">](https://arxiv.org/pdf/2210.01560)
+
 ### Library Usage
 
 Clone (with submodules) this repo and add the following to your `CMakeLists.txt`.
@@ -25,7 +27,7 @@ Run the following command to build the Docker image.
 Building the image takes about 5 minutes, as some packages (including LaTeX for the plots) have to be installed.
 
 ```bash
-docker build -t sichash .
+docker build -t sichash --no-cache .
 ```
 
 Some compiler warnings (red) are expected when building competitors and will not prevent building the image or running the experiments.
@@ -57,4 +59,14 @@ The resulting plots can be found in `scripts/dockerVolume` and are called `figur
 ### License
 
 This code is licensed under the [GPLv3](/LICENSE).
-If you use the project in an academic context or publication, please cite our paper.
+If you use the project in an academic context or publication, please cite our paper:
+
+```
+@article{sichash2022,
+  author    = {Lehmann, Hans-Peter and Sanders, Peter and Walzer, Stefan},
+  title     = {SicHash -- Small Irregular Cuckoo Tables for Perfect Hashing},
+  publisher = {arXiv},
+  year      = {2022},
+  doi       = {10.48550/ARXIV.2210.01560}
+}
+```

@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "IrregularCuckooHashTable.h"
-#include "SimpleRibbon.h"
+#include <SimpleRibbon.h>
 #include <EliasFano.h>
 
 namespace sichash {

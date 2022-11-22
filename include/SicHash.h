@@ -97,11 +97,11 @@ struct SicHashConfig {
  */
 template<bool minimal=false, size_t ribbonWidth=64, int minimalFanoLowerBits = 3>
 class SicHash {
-    public:
+    private:
         static constexpr size_t HASH_FUNCTION_BUCKET_ASSIGNMENT = 42;
-        SicHashConfig config;
-        size_t numSmallTables;
-        size_t N;
+        const SicHashConfig config;
+        const size_t N;
+        const size_t numSmallTables;
         std::vector<size_t> smallTableOffsets;
         std::vector<seed_t> smallTableSeeds;
         SimpleRibbon<1, ribbonWidth> *ribbon1 = nullptr;
@@ -111,110 +111,38 @@ class SicHash {
         util::EliasFano<minimalFanoLowerBits> minimalRemap;
         size_t unnecessaryConstructions = 0;
 
-        SicHash(const std::vector<std::string> &keys,
-                SicHashConfig _config)
-                  : config(_config), N(keys.size()),
+        SicHash(size_t N, SicHashConfig _config)
+                  : config(_config), N(N), numSmallTables(N / config.smallTableSize + 1),
                         minimalRemap(minimal ? (N / config.loadFactor - N) : 0, minimal ? N : 0) {
-            numSmallTables = keys.size() / config.smallTableSize + 1;
-            std::vector<IrregularCuckooHashTable> tables;
-            tables.reserve(numSmallTables);
-            IrregularCuckooHashTableConfig cuckooConfig;
-            cuckooConfig.threshold1 = config.threshold1;
-            cuckooConfig.threshold2 = config.threshold2;
-            cuckooConfig.maxEntries = config.smallTableSize * 1.2 + 100;
-            for (size_t i = 0; i < numSmallTables; i++) {
-                tables.emplace_back(cuckooConfig);
-            }
+            smallTableOffsets.reserve(numSmallTables);
+            smallTableSeeds.reserve(numSmallTables);
+        }
 
+    public:
+        SicHash(const std::vector<std::string> &keys, SicHashConfig config)
+                : SicHash(keys.size(), config) {
+            std::vector<IrregularCuckooHashTable> tables;
+            setupTables(tables);
             if (!config.silent) {
                 std::cout<<"Creating MHCs"<<std::endl;
             }
-            smallTableOffsets.reserve(numSmallTables);
-            smallTableSeeds.reserve(numSmallTables);
             for (const std::string &key : keys) {
                 HashedKey hash = HashedKey(key);
                 size_t smallTable = hash.hash(HASH_FUNCTION_BUCKET_ASSIGNMENT, numSmallTables);
                 tables[smallTable].prepare(hash);
             }
+            construct(tables);
+        }
 
-            if (!config.silent) {
-                std::cout<<"Inserting into Cuckoo"<<std::endl;
+        SicHash(const std::vector<HashedKey> &keys, SicHashConfig config)
+                : SicHash(keys.size(), config) {
+            std::vector<IrregularCuckooHashTable> tables;
+            setupTables(tables);
+            for (const HashedKey &hash : keys) {
+                size_t smallTable = hash.hash(HASH_FUNCTION_BUCKET_ASSIGNMENT, numSmallTables);
+                tables[smallTable].prepare(hash);
             }
-            std::vector<std::vector<std::pair<uint64_t, uint8_t>>> maps; // Avoids conditional jumps later
-            maps.resize(0b111 + 1);
-            maps[0b001].reserve(keys.size() * config.class1Percentage());
-            maps[0b011].reserve(keys.size() * config.class2Percentage());
-            maps[0b111].reserve(keys.size() * config.class3Percentage());
-            size_t sizePrefix = 0;
-            unnecessaryConstructions = 0;
-            for (IrregularCuckooHashTable &table : tables) {
-                size_t tableM = table.size() / config.loadFactor;
-                size_t seed = 0;
-                while (!table.construct(tableM, seed)) {
-                    unnecessaryConstructions++;
-                    seed++;
-                    if (seed >= std::numeric_limits<seed_t>::max()) {
-                        throw std::logic_error("Selected thresholds that cannot be constructed");
-                    }
-                }
-                smallTableSeeds.push_back(seed);
-                smallTableOffsets.push_back(sizePrefix);
-
-                for (size_t i = 0; i < table.size(); i++) {
-                    IrregularCuckooHashTable::TableEntry &entry = table.heap[i];
-                    maps[entry.hashFunctionMask].emplace_back(entry.hash.mhc, entry.hashFunctionIndex & entry.hashFunctionMask);
-                }
-                if constexpr (minimal) {
-                    for (size_t i = 0; i < tableM; i++) {
-                        if (table.cells[i] == nullptr) {
-                            emptySlots.push_back(sizePrefix + i);
-                        }
-                    }
-                }
-                sizePrefix += tableM;
-            }
-
-            smallTableOffsets.push_back(sizePrefix);
-            if (!config.silent) {
-                std::cout<<"On average, the small hash tables needed to be retried "
-                         <<(double)(unnecessaryConstructions+numSmallTables)/(double)numSmallTables<<" times"<<std::endl;
-                std::cout<<"Constructing Ribbon"<<std::endl;
-            }
-            ribbon1 = new SimpleRibbon<1, ribbonWidth>(maps[0b001]);
-            ribbon2 = new SimpleRibbon<2, ribbonWidth>(maps[0b011]);
-            ribbon3 = new SimpleRibbon<3, ribbonWidth>(maps[0b111]);
-
-            if constexpr (minimal) {
-                if (!config.silent) {
-                    std::cout<<"Making minimal"<<std::endl;
-                }
-                size_t smallTableToRemap = 0;
-                while (smallTableOffsets[smallTableToRemap] < N) {
-                    smallTableToRemap++;
-                }
-                smallTableToRemap--;
-                // Iterate over last few tables and remap filled positions
-                size_t emptyIndex = 0;
-                size_t i = keys.size() - smallTableOffsets[smallTableToRemap];
-                for (;smallTableToRemap < numSmallTables; smallTableToRemap++) {
-                    for (; i < tables[smallTableToRemap].M; i++) {
-                        minimalRemap.push_back(emptySlots[emptyIndex]);
-                        if (tables[smallTableToRemap].cells[i] != nullptr) {
-                            emptyIndex++;
-                            if (emptySlots[emptyIndex] >= N) {
-                                // No more empty slots left. We do not need to write the following items to
-                                // the EF sequence because they are never queried
-                                emptyIndex--;
-                                break;
-                            }
-                        }
-                    }
-                    i = 0;
-                }
-                minimalRemap.buildRankSelect();
-                emptySlots.clear();
-                emptySlots.shrink_to_fit();
-            }
+            construct(tables);
         }
 
         /** Estimate for the space usage of this structure, in bits */
@@ -270,6 +198,98 @@ class SicHash {
                 }
             }
             return result;
+        }
+    private:
+        void setupTables(std::vector<IrregularCuckooHashTable> &tables) {
+            tables.reserve(numSmallTables);
+            IrregularCuckooHashTableConfig cuckooConfig;
+            cuckooConfig.threshold1 = config.threshold1;
+            cuckooConfig.threshold2 = config.threshold2;
+            cuckooConfig.maxEntries = config.smallTableSize * 1.2 + 100;
+            for (size_t i = 0; i < numSmallTables; i++) {
+                tables.emplace_back(cuckooConfig);
+            }
+        }
+
+        void construct(std::vector<IrregularCuckooHashTable> &tables) {
+            if (!config.silent) {
+                std::cout<<"Inserting into Cuckoo"<<std::endl;
+            }
+            std::vector<std::vector<std::pair<uint64_t, uint8_t>>> maps; // Avoids conditional jumps later
+            maps.resize(0b111 + 1);
+            maps[0b001].reserve(N * config.class1Percentage());
+            maps[0b011].reserve(N * config.class2Percentage());
+            maps[0b111].reserve(N * config.class3Percentage());
+            size_t sizePrefix = 0;
+            unnecessaryConstructions = 0;
+            for (IrregularCuckooHashTable &table : tables) {
+                size_t tableM = table.size() / config.loadFactor;
+                size_t seed = 0;
+                while (!table.construct(tableM, seed)) {
+                    unnecessaryConstructions++;
+                    seed++;
+                    if (seed >= std::numeric_limits<seed_t>::max()) {
+                        throw std::logic_error("Selected thresholds that cannot be constructed");
+                    }
+                }
+                smallTableSeeds.push_back(seed);
+                smallTableOffsets.push_back(sizePrefix);
+
+                for (size_t i = 0; i < table.size(); i++) {
+                    IrregularCuckooHashTable::TableEntry &entry = table.heap[i];
+                    maps[entry.hashFunctionMask].emplace_back(entry.hash.mhc, entry.hashFunctionIndex & entry.hashFunctionMask);
+                }
+                if constexpr (minimal) {
+                    for (size_t i = 0; i < tableM; i++) {
+                        if (table.cells[i] == nullptr) {
+                            emptySlots.push_back(sizePrefix + i);
+                        }
+                    }
+                }
+                sizePrefix += tableM;
+            }
+            smallTableOffsets.push_back(sizePrefix);
+
+            if (!config.silent) {
+                std::cout<<"On average, the small hash tables needed to be retried "
+                         <<(double)(unnecessaryConstructions+numSmallTables)/(double)numSmallTables<<" times"<<std::endl;
+                std::cout<<"Constructing Ribbon"<<std::endl;
+            }
+            ribbon1 = new SimpleRibbon<1, ribbonWidth>(maps[0b001]);
+            ribbon2 = new SimpleRibbon<2, ribbonWidth>(maps[0b011]);
+            ribbon3 = new SimpleRibbon<3, ribbonWidth>(maps[0b111]);
+
+            if constexpr (minimal) {
+                if (!config.silent) {
+                    std::cout<<"Making minimal"<<std::endl;
+                }
+                size_t smallTableToRemap = 0;
+                while (smallTableOffsets[smallTableToRemap] < N) {
+                    smallTableToRemap++;
+                }
+                smallTableToRemap--;
+                // Iterate over last few tables and remap filled positions
+                size_t emptyIndex = 0;
+                size_t i = N - smallTableOffsets[smallTableToRemap];
+                for (;smallTableToRemap < numSmallTables; smallTableToRemap++) {
+                    for (; i < tables[smallTableToRemap].M; i++) {
+                        minimalRemap.push_back(emptySlots[emptyIndex]);
+                        if (tables[smallTableToRemap].cells[i] != nullptr) {
+                            emptyIndex++;
+                            if (emptySlots[emptyIndex] >= N) {
+                                // No more empty slots left. We do not need to write the following items to
+                                // the EF sequence because they are never queried
+                                emptyIndex--;
+                                break;
+                            }
+                        }
+                    }
+                    i = 0;
+                }
+                minimalRemap.buildRankSelect();
+                emptySlots.clear();
+                emptySlots.shrink_to_fit();
+            }
         }
 };
 } // Namespace sichash

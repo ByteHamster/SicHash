@@ -97,11 +97,13 @@ struct SicHashConfig {
  */
 template<bool minimal=false, size_t ribbonWidth=64, int minimalFanoLowerBits = 3>
 class SicHash {
-    private:
-        static constexpr size_t HASH_FUNCTION_BUCKET_ASSIGNMENT = 42;
+    public:
         const SicHashConfig config;
         const size_t N;
         const size_t numSmallTables;
+        size_t unnecessaryConstructions = 0;
+    private:
+        static constexpr size_t HASH_FUNCTION_BUCKET_ASSIGNMENT = 42;
         std::vector<size_t> smallTableOffsets;
         std::vector<seed_t> smallTableSeeds;
         SimpleRibbon<1, ribbonWidth> *ribbon1 = nullptr;
@@ -109,7 +111,6 @@ class SicHash {
         SimpleRibbon<3, ribbonWidth> *ribbon3 = nullptr;
         std::vector<size_t> emptySlots;
         util::EliasFano<minimalFanoLowerBits> minimalRemap;
-        size_t unnecessaryConstructions = 0;
 
         SicHash(size_t N, SicHashConfig _config)
                   : config(_config), N(N), numSmallTables(N / config.smallTableSize + 1),

@@ -31,16 +31,25 @@ class PartitionedSicHash {
             }
             children.resize(numThreads);
             std::vector<std::thread> threads;
+            std::atomic<bool> hadException = false;
             uint64_t childOffset = 0;
             for (size_t i = 0; i < numThreads; i++) {
                 childOffsets.push_back(childOffset);
                 childOffset += childInput[i].size();
                 threads.emplace_back([&, i]() {
-                    children[i] = new SicHash<minimal, ribbonWidth, minimalFanoLowerBits>(childInput[i], config);
+                    try {
+                        children[i] = new SicHash<minimal, ribbonWidth, minimalFanoLowerBits>(childInput[i], config);
+                    } catch (const std::exception& e) {
+                        std::cout<<"Error: "<<e.what()<<std::endl;
+                        hadException = true;
+                    }
                 });
             }
             for (std::thread &thread : threads) {
                 thread.join();
+            }
+            if (hadException) {
+                throw std::logic_error("One construction thread experienced a problem. Read output for details.");
             }
         }
 

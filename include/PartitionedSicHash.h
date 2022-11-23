@@ -32,10 +32,7 @@ class PartitionedSicHash {
             children.resize(numThreads);
             std::vector<std::thread> threads;
             std::atomic<bool> hadException = false;
-            uint64_t childOffset = 0;
             for (size_t i = 0; i < numThreads; i++) {
-                childOffsets.push_back(childOffset);
-                childOffset += childInput[i].size();
                 threads.emplace_back([&, i]() {
                     try {
                         children[i] = new SicHash<minimal, ribbonWidth, minimalFanoLowerBits>(childInput[i], config);
@@ -45,11 +42,16 @@ class PartitionedSicHash {
                     }
                 });
             }
-            for (std::thread &thread : threads) {
-                thread.join();
+            for (size_t i = 0; i < numThreads; i++) {
+                threads[i].join();
             }
             if (hadException) {
                 throw std::logic_error("One construction thread experienced a problem. Read output for details.");
+            }
+            uint64_t childOffset = 0;
+            for (size_t i = 0; i < numThreads; i++) {
+                childOffsets.push_back(childOffset);
+                childOffset += children[i]->M;
             }
         }
 
@@ -61,7 +63,7 @@ class PartitionedSicHash {
 
         /** Estimate for the space usage of this structure, in bits */
         [[nodiscard]] size_t spaceUsage() const {
-            size_t spaceUsage = sizeof(this) * 8;
+            size_t spaceUsage = sizeof(*this) * 8;
             for (auto &child : children) {
                 spaceUsage += child->spaceUsage();
             }

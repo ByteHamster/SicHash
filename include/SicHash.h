@@ -102,6 +102,7 @@ class SicHash {
         const size_t N;
         const size_t numSmallTables;
         size_t unnecessaryConstructions = 0;
+        size_t M = 0;
     private:
         static constexpr size_t HASH_FUNCTION_BUCKET_ASSIGNMENT = 42;
         std::vector<size_t> smallTableOffsets;
@@ -191,8 +192,8 @@ class SicHash {
             } else {
                 hashFunction = ribbon3->retrieve(hash.mhc);
             }
-            size_t M = smallTableOffsets[smallTable + 1] - smallTableOffsets[smallTable];
-            size_t result = hash.hash(hashFunction + smallTableSeeds[smallTable], M) + smallTableOffsets[smallTable];
+            size_t smallTableM = smallTableOffsets[smallTable + 1] - smallTableOffsets[smallTable];
+            size_t result = hash.hash(hashFunction + smallTableSeeds[smallTable], smallTableM) + smallTableOffsets[smallTable];
             if constexpr (minimal) {
                 if (result >= N) {
                     return minimalRemap.at(result - N);
@@ -250,6 +251,7 @@ class SicHash {
                 sizePrefix += tableM;
             }
             smallTableOffsets.push_back(sizePrefix);
+            M = sizePrefix;
 
             if (!config.silent) {
                 std::cout<<"On average, the small hash tables needed to be retried "
@@ -264,6 +266,7 @@ class SicHash {
                 if (!config.silent) {
                     std::cout<<"Making minimal"<<std::endl;
                 }
+                M = N;
                 size_t smallTableToRemap = 0;
                 while (smallTableOffsets[smallTableToRemap] < N) {
                     smallTableToRemap++;

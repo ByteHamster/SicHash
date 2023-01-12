@@ -1,9 +1,9 @@
 [submodule "sux"]
 	path = extlib/sux
-	url = git@github.com:ByteHamster-etc/sux.git
+	url = https://github.com/ByteHamster-etc/sux.git
 [submodule "extlib/util"]
 	path = extlib/util
-	url = git@github.com:ByteHamster/Util.git
+	url = https://github.com/ByteHamster/Util.git
 [submodule "extlib/simpleRibbon"]
 	path = extlib/simpleRibbon
-	url = git@github.com:ByteHamster/SimpleRibbon.git
+	url = https://github.com/ByteHamster/SimpleRibbon.git

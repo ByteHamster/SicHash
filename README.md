@@ -1,6 +1,6 @@
 # SicHash
 
-A (Minimum) Perfect Hash Function based on irregular cuckoo hashing, retrieval, and overloading.
+A (Minimal) Perfect Hash Function based on irregular cuckoo hashing, retrieval, and overloading.
 
 [<img src="https://raw.githubusercontent.com/ByteHamster/SicHash/main/plots.png" alt="Plots preview">](https://arxiv.org/pdf/2210.01560)
 

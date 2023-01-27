@@ -217,6 +217,12 @@ class SicHash {
             }
         }
 
+        ~SicHash() {
+            delete ribbon1;
+            delete ribbon2;
+            delete ribbon3;
+        }
+
         /** Estimate for the space usage of this structure, in bits */
         [[nodiscard]] size_t spaceUsage() const {
             size_t bytes = ribbon1->size() + ribbon2->size() + ribbon3->size()

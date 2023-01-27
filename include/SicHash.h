@@ -266,7 +266,7 @@ class SicHash {
             size_t result = hash.hash(hashFunction + smallTableSeeds[smallTable], M) + smallTableOffsets[smallTable];
             if constexpr (minimal) {
                 if (result >= N) {
-                    return minimalRemap.at(result - N);
+                    return *minimalRemap.at(result - N);
                 }
             }
             return result;

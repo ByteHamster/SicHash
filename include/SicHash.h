@@ -111,8 +111,8 @@ class SicHash {
         util::EliasFano<minimalFanoLowerBits> minimalRemap;
         size_t unnecessaryConstructions = 0;
 
-        SicHash(const std::vector<std::string> &keys,
-                SicHashConfig _config)
+        // Keys parameter must be an std::vector<std::string> or an std::vector<HashedKey>.
+        SicHash(const auto &keys, SicHashConfig _config)
                   : config(_config), N(keys.size()),
                         minimalRemap(minimal ? (N / config.loadFactor - N) : 0, minimal ? N : 0) {
             numSmallTables = keys.size() / config.smallTableSize + 1;
@@ -131,7 +131,7 @@ class SicHash {
             }
             smallTableOffsets.reserve(numSmallTables);
             smallTableSeeds.reserve(numSmallTables);
-            for (const std::string &key : keys) {
+            for (const auto &key : keys) {
                 HashedKey hash = HashedKey(key);
                 size_t smallTable = hash.hash(HASH_FUNCTION_BUCKET_ASSIGNMENT, numSmallTables);
                 tables[smallTable].prepare(hash);
@@ -257,7 +257,8 @@ class SicHash {
             return bytes * 8 + efBits + golombBits;
         }
 
-        size_t operator() (std::string &key) const {
+        // Parameter must be an std::string or a HashedKey.
+        size_t operator() (const auto &key) const {
             HashedKey hash = HashedKey(key);
             size_t smallTable = hash.hash(HASH_FUNCTION_BUCKET_ASSIGNMENT, numSmallTables);
             uint8_t hashFunction;

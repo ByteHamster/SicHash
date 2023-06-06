@@ -7,3 +7,6 @@
 [submodule "extlib/simpleRibbon"]
 	path = extlib/simpleRibbon
 	url = https://github.com/ByteHamster/SimpleRibbon.git
+[submodule "extlib/tlx"]
+	path = extlib/tlx
+	url = https://github.com/tlx/tlx.git

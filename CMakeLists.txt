@@ -6,6 +6,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release" AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRE
     add_compile_options(-march=native)
 endif()
 
+set(TLX_INSTALL_INCLUDE_DIR tlx CACHE PATH "Workaround for TLX breaking the first cmake call")
+add_subdirectory(extlib/tlx)
+
 add_library(SicHash INTERFACE)
 target_include_directories(SicHash INTERFACE include)
 target_compile_features(SicHash INTERFACE cxx_std_20)

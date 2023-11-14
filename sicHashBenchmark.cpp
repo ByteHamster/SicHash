@@ -51,6 +51,16 @@ int main(int argc, char** argv) {
         }
         end = std::chrono::steady_clock::now();
         queryTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+        std::cout << "Checking" << std::endl;
+        std::vector<bool> taken(keys.size() / sicHashTable.config.loadFactor + 100, false); // +100 for rounding
+        for (std::string &key : keys) {
+            size_t retrieved = sicHashTable(key);
+            if (taken[retrieved]) {
+                std::cerr << "Error: not minimal" << std::endl;
+                return -1;
+            }
+            taken[retrieved] = true;
+        }
     }
 
     std::cout << "RESULT"

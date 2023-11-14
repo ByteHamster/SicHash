@@ -102,8 +102,11 @@ class SicHash {
         SicHashConfig config;
         size_t numSmallTables;
         size_t N;
-        std::vector<size_t> smallTableOffsets;
-        std::vector<seed_t> smallTableSeeds;
+        struct BucketInfo {
+            size_t offset : 48;
+            size_t seed   : 16;
+        };
+        std::vector<BucketInfo> bucketInfo;
         SimpleRibbon<1, ribbonWidth> *ribbon1 = nullptr;
         SimpleRibbon<2, ribbonWidth> *ribbon2 = nullptr;
         SimpleRibbon<3, ribbonWidth> *ribbon3 = nullptr;
@@ -129,8 +132,7 @@ class SicHash {
             if (!config.silent) {
                 std::cout<<"Creating MHCs"<<std::endl;
             }
-            smallTableOffsets.reserve(numSmallTables);
-            smallTableSeeds.reserve(numSmallTables);
+            bucketInfo.reserve(numSmallTables);
             for (const auto &key : keys) {
                 HashedKey hash = HashedKey(key);
                 size_t smallTable = hash.hash(HASH_FUNCTION_BUCKET_ASSIGNMENT, numSmallTables);
@@ -157,8 +159,7 @@ class SicHash {
                         throw std::logic_error("Selected thresholds that cannot be constructed");
                     }
                 }
-                smallTableSeeds.push_back(seed);
-                smallTableOffsets.push_back(sizePrefix);
+                bucketInfo.emplace_back(sizePrefix, seed);
 
                 for (size_t i = 0; i < table.size(); i++) {
                     IrregularCuckooHashTable::TableEntry &entry = table.heap[i];
@@ -174,7 +175,7 @@ class SicHash {
                 sizePrefix += tableM;
             }
 
-            smallTableOffsets.push_back(sizePrefix);
+            bucketInfo.emplace_back(sizePrefix, 0);
             if (!config.silent) {
                 std::cout<<"On average, the small hash tables needed to be retried "
                          <<(double)(unnecessaryConstructions+numSmallTables)/(double)numSmallTables<<" times"<<std::endl;
@@ -189,13 +190,13 @@ class SicHash {
                     std::cout<<"Making minimal"<<std::endl;
                 }
                 size_t smallTableToRemap = 0;
-                while (smallTableOffsets[smallTableToRemap] < N) {
+                while (bucketInfo[smallTableToRemap].offset < N) {
                     smallTableToRemap++;
                 }
                 smallTableToRemap--;
                 // Iterate over last few tables and remap filled positions
                 size_t emptyIndex = 0;
-                size_t i = keys.size() - smallTableOffsets[smallTableToRemap];
+                size_t i = keys.size() - bucketInfo[smallTableToRemap].offset;
                 for (;smallTableToRemap < numSmallTables; smallTableToRemap++) {
                     for (; i < tables[smallTableToRemap].M; i++) {
                         minimalRemap.push_back(emptySlots[emptyIndex]);
@@ -226,8 +227,7 @@ class SicHash {
         /** Estimate for the space usage of this structure, in bits */
         [[nodiscard]] size_t spaceUsage() const {
             size_t bytes = ribbon1->size() + ribbon2->size() + ribbon3->size()
-                    + smallTableOffsets.size() * sizeof(size_t)
-                    + smallTableSeeds.size() * sizeof(seed_t);
+                    + bucketInfo.size() * sizeof(bucketInfo.at(0));
             if constexpr (minimal) {
                 bytes += minimalRemap.space();
             }
@@ -241,14 +241,14 @@ class SicHash {
                 bytes += minimalRemap.space();
             }
 
-            size_t efN = smallTableOffsets.size();
+            size_t efN = bucketInfo.size();
             size_t efBits = 2 * efN;
-            efBits += efN * std::ceil(std::log2((double) smallTableOffsets.back() / (double)efN));
+            efBits += efN * std::ceil(std::log2((double) bucketInfo.back().offset / (double)efN));
 
             size_t golombBits = 0;
             double averageSeed = (double)(unnecessaryConstructions+numSmallTables)/(double)numSmallTables;
             size_t b = std::log2(averageSeed);
-            for (size_t seed : smallTableSeeds) {
+            for (auto [offset, seed] : bucketInfo) {
                 size_t q = seed >> b;
                 // size_t r = seed - q;
                 golombBits += b; // Remainder binary coded
@@ -261,6 +261,7 @@ class SicHash {
         size_t operator() (const auto &key) const {
             HashedKey hash = HashedKey(key);
             size_t smallTable = hash.hash(HASH_FUNCTION_BUCKET_ASSIGNMENT, numSmallTables);
+            __builtin_prefetch(&bucketInfo[smallTable],0,0);
             uint8_t hashFunction;
             if (hash.mhc <= config.threshold1) {
                 hashFunction = ribbon1->retrieve(hash.mhc);
@@ -269,8 +270,8 @@ class SicHash {
             } else {
                 hashFunction = ribbon3->retrieve(hash.mhc);
             }
-            size_t M = smallTableOffsets[smallTable + 1] - smallTableOffsets[smallTable];
-            size_t result = hash.hash(hashFunction + smallTableSeeds[smallTable], M) + smallTableOffsets[smallTable];
+            size_t M = bucketInfo[smallTable + 1].offset - bucketInfo[smallTable].offset;
+            size_t result = hash.hash(hashFunction + bucketInfo[smallTable].seed, M) + bucketInfo[smallTable].offset;
             if constexpr (minimal) {
                 if (result >= N) {
                     return *minimalRemap.at(result - N);

@@ -2,11 +2,11 @@
 
 A (Minimal) Perfect Hash Function based on irregular cuckoo hashing, retrieval, and overloading.
 
-## Construction performance (n = 5 million)
+### Construction performance (n = 5 million)
 
 [<img src="https://raw.githubusercontent.com/ByteHamster/SicHash/main/plots-construction.png" alt="Plots preview">](https://arxiv.org/pdf/2210.01560)
 
-## Query performance
+### Query performance
 
 [<img src="https://raw.githubusercontent.com/ByteHamster/SicHash/main/plots-query.png" alt="Plots preview">](https://arxiv.org/pdf/2210.01560)
 

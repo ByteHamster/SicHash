@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this software in an academic context or publication, please cite it as below."
+authors:
+- family-names: "Lehmann"
+  given-names: "Hans-Peter"
+  orcid: "https://orcid.org/0000-0002-0474-1805"
+- family-names: "Sanders"
+  given-names: "Peter"
+  orcid: "https://orcid.org/0000-0003-3330-9349"
+- family-names: "Walzer"
+  given-names: "Stefan"
+  orcid: "https://orcid.org/0000-0002-6477-0106"
+title: "SicHash - Small Irregular Cuckoo Tables for Perfect Hashing"
+preferred-citation:
+  type: conference-paper
+  title: "SicHash - Small Irregular Cuckoo Tables for Perfect Hashing"
+  authors:
+    - family-names: "Lehmann"
+      given-names: "Hans-Peter"
+      orcid: "https://orcid.org/0000-0002-0474-1805"
+    - family-names: "Sanders"
+      given-names: "Peter"
+      orcid: "https://orcid.org/0000-0003-3330-9349"
+    - family-names: "Walzer"
+      given-names: "Stefan"
+      orcid: "https://orcid.org/0000-0002-6477-0106"
+  doi: "10.1137/1.9781611977561.CH15"
+  journal: "ALENEX"
+  year: 2023

@@ -63,14 +63,18 @@ More experiments comparing SicHash with competitors can be found in a different 
 ### License
 
 This code is licensed under the [GPLv3](/LICENSE).
-If you use the project in an academic context or publication, please cite our paper:
+If you use the project in an academic context or publication, please cite [our paper](https://doi.org/10.1137/1.9781611977561.ch15):
 
 ```
-@article{sichash2022,
-  author    = {Lehmann, Hans-Peter and Sanders, Peter and Walzer, Stefan},
-  title     = {SicHash -- Small Irregular Cuckoo Tables for Perfect Hashing},
-  publisher = {arXiv},
-  year      = {2022},
-  doi       = {10.48550/ARXIV.2210.01560}
+@inproceedings{lehmann2023sichash,
+  author       = {Hans{-}Peter Lehmann and
+                  Peter Sanders and
+                  Stefan Walzer},
+  title        = {SicHash - Small Irregular Cuckoo Tables for Perfect Hashing},
+  booktitle    = {{ALENEX}},
+  pages        = {176--189},
+  publisher    = {{SIAM}},
+  year         = {2023},
+  doi          = {10.1137/1.9781611977561.CH15}
 }
 ```

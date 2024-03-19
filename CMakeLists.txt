@@ -17,7 +17,7 @@ add_subdirectory(extlib/util EXCLUDE_FROM_ALL)
 target_link_libraries(SicHash INTERFACE ByteHamsterUtil)
 
 add_subdirectory(extlib/simpleRibbon)
-target_link_libraries(SicHash INTERFACE SimpleRibbon)
+target_link_libraries(SicHash INTERFACE SimpleRibbon ips2ra)
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     ################### Benchmark build targets ###################

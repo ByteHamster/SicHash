@@ -97,6 +97,7 @@ class IrregularCuckooHashTable {
 
         void prepare(HashedKey hash) {
             assert(numEntries < config.maxEntries);
+            heap[numEntries] = TableEntry();
             heap[numEntries].hash = hash;
             if (hash.mhc <= config.threshold1) {
                 heap[numEntries].hashFunctionMask = 0b001;
@@ -106,6 +107,10 @@ class IrregularCuckooHashTable {
                 heap[numEntries].hashFunctionMask = 0b111;
             }
             numEntries++;
+        }
+
+        void clear() {
+            numEntries = 0;
         }
 
         bool construct(size_t M_, size_t seed_) {

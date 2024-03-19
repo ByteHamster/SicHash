@@ -3,6 +3,7 @@
 #include "IrregularCuckooHashTable.h"
 #include <SimpleRibbon.h>
 #include <EliasFano.h>
+#include <ips2ra.hpp>
 
 namespace sichash {
 using seed_t = uint8_t;
@@ -110,34 +111,26 @@ class SicHash {
         SimpleRibbon<1, ribbonWidth> *ribbon1 = nullptr;
         SimpleRibbon<2, ribbonWidth> *ribbon2 = nullptr;
         SimpleRibbon<3, ribbonWidth> *ribbon3 = nullptr;
-        std::vector<size_t> emptySlots;
-        util::EliasFano<minimalFanoLowerBits> minimalRemap;
+        util::EliasFano<minimalFanoLowerBits> *minimalRemap = nullptr;
         size_t unnecessaryConstructions = 0;
 
         // Keys parameter must be an std::vector<std::string> or an std::vector<HashedKey>.
-        SicHash(const auto &keys, SicHashConfig _config)
-                  : config(_config), N(keys.size()),
-                        minimalRemap(minimal ? (N / config.loadFactor - N) : 0, minimal ? N : 0) {
+        SicHash(const auto &keys, SicHashConfig _config) : config(_config), N(keys.size()) {
+            std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
             numSmallTables = keys.size() / config.smallTableSize + 1;
-            std::vector<IrregularCuckooHashTable> tables;
-            tables.reserve(numSmallTables);
-            IrregularCuckooHashTableConfig cuckooConfig;
-            cuckooConfig.threshold1 = config.threshold1;
-            cuckooConfig.threshold2 = config.threshold2;
-            cuckooConfig.maxEntries = config.smallTableSize * 1.2 + 100;
-            for (size_t i = 0; i < numSmallTables; i++) {
-                tables.emplace_back(cuckooConfig);
-            }
-
             if (!config.silent) {
                 std::cout<<"Creating MHCs"<<std::endl;
             }
             bucketInfo.reserve(numSmallTables);
+            std::vector<std::pair<size_t, HashedKey>> hashedKeys;
+            hashedKeys.reserve(N);
             for (const auto &key : keys) {
                 HashedKey hash = HashedKey(key);
                 size_t smallTable = hash.hash(HASH_FUNCTION_BUCKET_ASSIGNMENT, numSmallTables);
-                tables[smallTable].prepare(hash);
+                hashedKeys.emplace_back(smallTable, hash);
             }
+            ips2ra::sort(hashedKeys.begin(), hashedKeys.end(),
+                         [](const std::pair<size_t, HashedKey> &pair) { return pair.first; });
 
             if (!config.silent) {
                 std::cout<<"Inserting into Cuckoo"<<std::endl;
@@ -149,10 +142,27 @@ class SicHash {
             maps[0b111].reserve(keys.size() * config.class3Percentage());
             size_t sizePrefix = 0;
             unnecessaryConstructions = 0;
-            for (IrregularCuckooHashTable &table : tables) {
-                size_t tableM = table.size() / config.loadFactor;
+            hashedKeys.emplace_back(numSmallTables + 1, 0); // Sentinel
+            size_t keyIdx = 0;
+            IrregularCuckooHashTableConfig cuckooConfig;
+            cuckooConfig.threshold1 = config.threshold1;
+            cuckooConfig.threshold2 = config.threshold2;
+            cuckooConfig.maxEntries = config.smallTableSize * 1.2 + 100;
+            IrregularCuckooHashTable irregularCuckooHashTable(cuckooConfig);
+            std::vector<size_t> emptySlots;
+            if constexpr (minimal) {
+                emptySlots.reserve(N / config.loadFactor - N);
+            }
+
+            for (size_t tableIdx = 0; tableIdx < numSmallTables; tableIdx++) {
+                irregularCuckooHashTable.clear();
+                while (hashedKeys[keyIdx].first == tableIdx) {
+                    irregularCuckooHashTable.prepare(hashedKeys[keyIdx].second);
+                    keyIdx++;
+                }
+                size_t tableM = irregularCuckooHashTable.size() / config.loadFactor;
                 size_t seed = 0;
-                while (!table.construct(tableM, seed)) {
+                while (!irregularCuckooHashTable.construct(tableM, seed)) {
                     unnecessaryConstructions++;
                     seed++;
                     if (seed >= std::numeric_limits<seed_t>::max()) {
@@ -161,14 +171,14 @@ class SicHash {
                 }
                 bucketInfo.emplace_back(sizePrefix, seed);
 
-                for (size_t i = 0; i < table.size(); i++) {
-                    IrregularCuckooHashTable::TableEntry &entry = table.heap[i];
+                for (size_t k = 0; k < irregularCuckooHashTable.size(); k++) {
+                    IrregularCuckooHashTable::TableEntry &entry = irregularCuckooHashTable.heap[k];
                     maps[entry.hashFunctionMask].emplace_back(entry.hash.mhc, entry.hashFunctionIndex & entry.hashFunctionMask);
                 }
                 if constexpr (minimal) {
-                    for (size_t i = 0; i < tableM; i++) {
-                        if (table.cells[i] == nullptr) {
-                            emptySlots.push_back(sizePrefix + i);
+                    for (size_t k = 0; k < tableM; k++) {
+                        if (irregularCuckooHashTable.cells[k] == nullptr) {
+                            emptySlots.push_back(sizePrefix + k);
                         }
                     }
                 }
@@ -186,33 +196,11 @@ class SicHash {
             ribbon3 = new SimpleRibbon<3, ribbonWidth>(maps[0b111]);
 
             if constexpr (minimal) {
-                if (!config.silent) {
-                    std::cout<<"Making minimal"<<std::endl;
+                minimalRemap = new util::EliasFano<minimalFanoLowerBits>(emptySlots.size(), emptySlots.back() + 1);
+                for (size_t slot : emptySlots) {
+                    minimalRemap->push_back(slot);
                 }
-                size_t smallTableToRemap = 0;
-                while (bucketInfo[smallTableToRemap].offset < N) {
-                    smallTableToRemap++;
-                }
-                smallTableToRemap--;
-                // Iterate over last few tables and remap filled positions
-                size_t emptyIndex = 0;
-                size_t i = keys.size() - bucketInfo[smallTableToRemap].offset;
-                for (;smallTableToRemap < numSmallTables; smallTableToRemap++) {
-                    for (; i < tables[smallTableToRemap].M; i++) {
-                        minimalRemap.push_back(emptySlots[emptyIndex]);
-                        if (tables[smallTableToRemap].cells[i] != nullptr) {
-                            emptyIndex++;
-                            if (emptySlots[emptyIndex] >= N) {
-                                // No more empty slots left. We do not need to write the following items to
-                                // the EF sequence because they are never queried
-                                emptyIndex--;
-                                break;
-                            }
-                        }
-                    }
-                    i = 0;
-                }
-                minimalRemap.buildRankSelect();
+                minimalRemap->buildRankSelect();
                 emptySlots.clear();
                 emptySlots.shrink_to_fit();
             }
@@ -229,7 +217,7 @@ class SicHash {
             size_t bytes = ribbon1->size() + ribbon2->size() + ribbon3->size()
                     + bucketInfo.size() * sizeof(bucketInfo.at(0));
             if constexpr (minimal) {
-                bytes += minimalRemap.space();
+                bytes += minimalRemap->space();
             }
             return bytes * 8;
         }
@@ -238,7 +226,7 @@ class SicHash {
         [[nodiscard]] size_t spaceUsageTheory() const {
             size_t bytes = ribbon1->size() + ribbon2->size() + ribbon3->size();
             if constexpr (minimal) {
-                bytes += minimalRemap.space();
+                bytes += minimalRemap->space();
             }
 
             size_t efN = bucketInfo.size();
@@ -274,7 +262,7 @@ class SicHash {
             size_t result = hash.hash(hashFunction + bucketInfo[smallTable].seed, M) + bucketInfo[smallTable].offset;
             if constexpr (minimal) {
                 if (result >= N) {
-                    return *minimalRemap.at(result - N);
+                    return *minimalRemap->at(result - N);
                 }
             }
             return result;

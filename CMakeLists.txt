@@ -16,8 +16,19 @@ target_compile_features(SicHash INTERFACE cxx_std_20)
 add_subdirectory(extlib/util EXCLUDE_FROM_ALL)
 target_link_libraries(SicHash INTERFACE ByteHamsterUtil)
 
-add_subdirectory(extlib/simpleRibbon)
+if(NOT TARGET simpleRibbon)
+    set(IPS2RA_DISABLE_PARALLEL ON CACHE PATH "ips2ra's FindTBB greps a file that does not exist in recent TBB versions")
+    add_subdirectory(extlib/simpleRibbon)
+    find_package(TBB)
+    target_compile_options(ips2ra INTERFACE -D_REENTRANT)
+    target_link_libraries(ips2ra INTERFACE pthread atomic TBB::tbb)
+endif()
 target_link_libraries(SicHash INTERFACE SimpleRibbon ips2ra)
+
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(SicHash INTERFACE OpenMP::OpenMP_CXX)
+endif()
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     ################### Benchmark build targets ###################

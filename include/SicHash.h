@@ -96,7 +96,7 @@ struct SicHashConfig {
  *                              loadFactor < ~0.94 ==> use minimalFanoLowerBits=4
  *                              loadFactor < ~0.97 ==> use minimalFanoLowerBits=5
  */
-template<bool minimal=false, size_t ribbonWidth=64, int minimalFanoLowerBits = 3>
+template<bool minimal=true, size_t ribbonWidth=64, int minimalFanoLowerBits = 5>
 class SicHash {
     public:
         static constexpr size_t HASH_FUNCTION_BUCKET_ASSIGNMENT = 42;
@@ -115,7 +115,7 @@ class SicHash {
         size_t unnecessaryConstructions = 0;
 
         // Keys parameter must be an std::vector<std::string> or an std::vector<HashedKey>.
-        SicHash(const auto &keys, SicHashConfig _config)
+        SicHash(const auto &keys, SicHashConfig _config, size_t threads = 4)
                 : config(_config),
                   N(keys.size()),
                   numSmallTables(N / config.smallTableSize + 1),
@@ -125,8 +125,18 @@ class SicHash {
                 std::cout << "Creating MHCs" << std::endl;
             }
             std::vector<std::pair<size_t, HashedKey>> hashedKeys(N);
-            initialHash(0, N, keys, hashedKeys);
-            ips2ra::sort(hashedKeys.begin(), hashedKeys.end(),
+            if (threads == 1) {
+                initialHash(0, N, keys, hashedKeys);
+            } else {
+                size_t keysPerThread = (N + threads) / threads;
+                #pragma omp parallel for num_threads(threads)
+                for (size_t i = 0; i < threads; i++) {
+                    size_t from = i * keysPerThread;
+                    size_t to = std::min(N, (i + 1) * keysPerThread);
+                    initialHash(from, to, keys, hashedKeys);
+                }
+            }
+            ips2ra::parallel::sort(hashedKeys.begin(), hashedKeys.end(),
                          [](const std::pair<size_t, HashedKey> &pair) { return pair.first; });
 
             if (!config.silent) {
@@ -134,29 +144,78 @@ class SicHash {
                         std::chrono::steady_clock::now() - begin).count() << std::endl;
             }
 
-            construct(hashedKeys);
+            construct(hashedKeys, threads);
         }
 
-        void construct(std::vector<std::pair<size_t, HashedKey>> &hashedKeys) {
+        void construct(std::vector<std::pair<size_t, HashedKey>> &hashedKeys, size_t threads) {
             std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
             if (!config.silent) {
                 std::cout<<"Inserting into Cuckoo"<<std::endl;
             }
             std::vector<std::vector<std::pair<uint64_t, uint8_t>>> maps; // Avoids conditional jumps later
             maps.resize(0b111 + 1);
-            maps[0b001].reserve(N * config.class1Percentage());
-            maps[0b011].reserve(N * config.class2Percentage());
-            maps[0b111].reserve(N * config.class3Percentage());
             unnecessaryConstructions = 0;
             hashedKeys.emplace_back(numSmallTables + 1, 0); // Sentinel
 
             std::vector<size_t> emptySlots;
-            if constexpr (minimal) {
-                emptySlots.reserve(N / config.loadFactor - N);
+            if (threads == 1) {
+                if constexpr (minimal) {
+                    emptySlots.reserve(N / config.loadFactor - N);
+                }
+                maps[0b001].reserve(N * config.class1Percentage());
+                maps[0b011].reserve(N * config.class2Percentage());
+                maps[0b111].reserve(N * config.class3Percentage());
+                constructSmallTables(0, numSmallTables, hashedKeys, emptySlots, maps);
+                bucketInfo[numSmallTables].offset = bucketInfo[0].offset;
+                bucketInfo[0].offset = 0;
+            } else {
+                size_t bucketsPerThread = (numSmallTables + threads) / threads;
+                std::vector<std::vector<size_t>> emptySlotsThreads(threads);
+                std::vector<std::vector<std::vector<std::pair<uint64_t, uint8_t>>>> mapsThreads;
+                mapsThreads.resize(threads);
+                for (size_t i = 0; i < threads; i++) {
+                    if constexpr (minimal) {
+                        emptySlotsThreads[i].reserve((N / threads) / config.loadFactor - N / threads);
+                    }
+                    mapsThreads[i].resize(0b111 + 1);
+                    maps[0b001].reserve(bucketsPerThread * config.smallTableSize * config.class1Percentage());
+                    maps[0b011].reserve(bucketsPerThread * config.smallTableSize * config.class2Percentage());
+                    maps[0b111].reserve(bucketsPerThread * config.smallTableSize * config.class3Percentage());
+                }
+
+                #pragma omp parallel for num_threads(threads)
+                for (size_t i = 0; i < threads; i++) {
+                    size_t from = i * bucketsPerThread;
+                    size_t to = std::min(numSmallTables, (i + 1) * bucketsPerThread);
+                    constructSmallTables(from, to, hashedKeys, emptySlotsThreads[i], mapsThreads[i]);
+                }
+                size_t sizePrefix = 0;
+                for (size_t i = 0; i < threads; i++) {
+                    size_t size = bucketInfo[i * bucketsPerThread].offset;
+                    bucketInfo[i * bucketsPerThread].offset = sizePrefix;
+                    sizePrefix += size;
+                }
+                bucketInfo[0].offset = 0;
+                bucketInfo[numSmallTables].offset = sizePrefix;
+                #pragma omp parallel for num_threads(threads)
+                for (size_t i = 1; i < threads; i++) { // Offsets of first thread do not have to be changed
+                    size_t from = i * bucketsPerThread;
+                    size_t to = std::min(numSmallTables, (i + 1) * bucketsPerThread);
+                    for (size_t k = from + 1; k < to; k++) {
+                        bucketInfo[k].offset += bucketInfo[from].offset;
+                    }
+                    for (size_t k = 0; k < emptySlotsThreads[i].size(); k++) {
+                        emptySlotsThreads[i][k] += bucketInfo[from].offset;
+                    }
+                }
+                // Append thread-local arrays to global ones
+                for (size_t i = 0; i < threads; i++) {
+                    emptySlots.insert(emptySlots.end(), emptySlotsThreads[i].begin(), emptySlotsThreads[i].end());
+                    maps[0b001].insert(maps[0b001].end(), mapsThreads[i][0b001].begin(), mapsThreads[i][0b001].end());
+                    maps[0b011].insert(maps[0b011].end(), mapsThreads[i][0b011].begin(), mapsThreads[i][0b011].end());
+                    maps[0b111].insert(maps[0b111].end(), mapsThreads[i][0b111].begin(), mapsThreads[i][0b111].end());
+                }
             }
-            constructSmallTables(0, numSmallTables, hashedKeys, emptySlots, maps);
-            bucketInfo[numSmallTables].offset = bucketInfo[0].offset;
-            bucketInfo[0].offset = 0;
 
             if (!config.silent) {
                 std::cout << "Buckets took " << std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -167,9 +226,17 @@ class SicHash {
                 std::cout<<"Constructing Ribbon"<<std::endl;
             }
 
-            ribbon1 = new SimpleRibbon<1, ribbonWidth>(maps[0b001]);
-            ribbon2 = new SimpleRibbon<2, ribbonWidth>(maps[0b011]);
-            ribbon3 = new SimpleRibbon<3, ribbonWidth>(maps[0b111]);
+            #pragma omp parallel for num_threads(threads)
+            for (size_t i = 0; i < 3; i++) {
+                if (i == 0) {
+                    ribbon1 = new SimpleRibbon<1, ribbonWidth>(maps[0b001]);
+                } else if (i == 1) {
+                    ribbon2 = new SimpleRibbon<2, ribbonWidth>(maps[0b011]);
+                } else if (i == 2) {
+                    ribbon3 = new SimpleRibbon<3, ribbonWidth>(maps[0b111]);
+                }
+            }
+
             if (!config.silent) {
                 std::cout << "Ribbon took " << std::chrono::duration_cast<std::chrono::milliseconds>(
                         std::chrono::steady_clock::now() - begin).count() << std::endl;
@@ -207,13 +274,14 @@ class SicHash {
 
             // Find key to start with
             size_t keyIdx = (double(from) / double(numSmallTables)) * N; // Rough estimate
+            while (keyIdx > 0 && hashedKeys[keyIdx].first >= from) {
+                keyIdx--;
+            }
             while (hashedKeys[keyIdx].first < from) {
                 keyIdx++;
             }
-            while (hashedKeys[keyIdx].first > from) {
-                keyIdx--;
-            }
-
+            assert(hashedKeys[keyIdx].first == from);
+            assert(keyIdx == 0 || hashedKeys[keyIdx - 1].first < from);
             for (size_t bucketIdx = from; bucketIdx < to; bucketIdx++) {
                 irregularCuckooHashTable.clear();
                 while (hashedKeys[keyIdx].first == bucketIdx) {

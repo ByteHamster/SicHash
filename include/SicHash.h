@@ -100,9 +100,9 @@ template<bool minimal=false, size_t ribbonWidth=64, int minimalFanoLowerBits = 3
 class SicHash {
     public:
         static constexpr size_t HASH_FUNCTION_BUCKET_ASSIGNMENT = 42;
-        SicHashConfig config;
-        size_t numSmallTables;
+        const SicHashConfig config;
         size_t N;
+        const size_t numSmallTables;
         struct BucketInfo {
             size_t offset : 48;
             size_t seed   : 16;
@@ -115,48 +115,108 @@ class SicHash {
         size_t unnecessaryConstructions = 0;
 
         // Keys parameter must be an std::vector<std::string> or an std::vector<HashedKey>.
-        SicHash(const auto &keys, SicHashConfig _config) : config(_config), N(keys.size()) {
+        SicHash(const auto &keys, SicHashConfig _config)
+                : config(_config),
+                  N(keys.size()),
+                  numSmallTables(N / config.smallTableSize + 1),
+                  bucketInfo(numSmallTables + 1) {
             std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-            numSmallTables = keys.size() / config.smallTableSize + 1;
             if (!config.silent) {
-                std::cout<<"Creating MHCs"<<std::endl;
+                std::cout << "Creating MHCs" << std::endl;
             }
-            bucketInfo.reserve(numSmallTables);
-            std::vector<std::pair<size_t, HashedKey>> hashedKeys;
-            hashedKeys.reserve(N);
-            for (const auto &key : keys) {
-                HashedKey hash = HashedKey(key);
-                size_t smallTable = hash.hash(HASH_FUNCTION_BUCKET_ASSIGNMENT, numSmallTables);
-                hashedKeys.emplace_back(smallTable, hash);
-            }
+            std::vector<std::pair<size_t, HashedKey>> hashedKeys(N);
+            initialHash(0, N, keys, hashedKeys);
             ips2ra::sort(hashedKeys.begin(), hashedKeys.end(),
                          [](const std::pair<size_t, HashedKey> &pair) { return pair.first; });
 
+            if (!config.silent) {
+                std::cout << "MHCs took " << std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::steady_clock::now() - begin).count() << std::endl;
+            }
+
+            construct(hashedKeys);
+        }
+
+        void construct(std::vector<std::pair<size_t, HashedKey>> &hashedKeys) {
+            std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
             if (!config.silent) {
                 std::cout<<"Inserting into Cuckoo"<<std::endl;
             }
             std::vector<std::vector<std::pair<uint64_t, uint8_t>>> maps; // Avoids conditional jumps later
             maps.resize(0b111 + 1);
-            maps[0b001].reserve(keys.size() * config.class1Percentage());
-            maps[0b011].reserve(keys.size() * config.class2Percentage());
-            maps[0b111].reserve(keys.size() * config.class3Percentage());
-            size_t sizePrefix = 0;
+            maps[0b001].reserve(N * config.class1Percentage());
+            maps[0b011].reserve(N * config.class2Percentage());
+            maps[0b111].reserve(N * config.class3Percentage());
             unnecessaryConstructions = 0;
             hashedKeys.emplace_back(numSmallTables + 1, 0); // Sentinel
-            size_t keyIdx = 0;
+
+            std::vector<size_t> emptySlots;
+            if constexpr (minimal) {
+                emptySlots.reserve(N / config.loadFactor - N);
+            }
+            constructSmallTables(0, numSmallTables, hashedKeys, emptySlots, maps);
+            bucketInfo[numSmallTables].offset = bucketInfo[0].offset;
+            bucketInfo[0].offset = 0;
+
+            if (!config.silent) {
+                std::cout << "Buckets took " << std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::steady_clock::now() - begin).count() << std::endl;
+                begin = std::chrono::steady_clock::now();
+                std::cout<<"On average, the small hash tables needed to be retried "
+                         <<(double)(unnecessaryConstructions+numSmallTables)/(double)numSmallTables<<" times"<<std::endl;
+                std::cout<<"Constructing Ribbon"<<std::endl;
+            }
+
+            ribbon1 = new SimpleRibbon<1, ribbonWidth>(maps[0b001]);
+            ribbon2 = new SimpleRibbon<2, ribbonWidth>(maps[0b011]);
+            ribbon3 = new SimpleRibbon<3, ribbonWidth>(maps[0b111]);
+            if (!config.silent) {
+                std::cout << "Ribbon took " << std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::steady_clock::now() - begin).count() << std::endl;
+            }
+
+            if constexpr (minimal) {
+                minimalRemap = new util::EliasFano<minimalFanoLowerBits>(emptySlots.size(), emptySlots.back() + 1);
+                for (size_t slot : emptySlots) {
+                    minimalRemap->push_back(slot);
+                }
+                minimalRemap->buildRankSelect();
+                emptySlots.clear();
+                emptySlots.shrink_to_fit();
+            }
+        }
+
+        void initialHash(size_t from, size_t to, const auto &keys,
+                         std::vector<std::pair<size_t, HashedKey>> &hashedKeys) {
+            for (size_t i = from; i < to; i++) {
+                HashedKey hash = HashedKey(keys[i]);
+                size_t smallTable = hash.hash(HASH_FUNCTION_BUCKET_ASSIGNMENT, numSmallTables);
+                hashedKeys[i] = std::make_pair(smallTable, hash);
+            }
+        }
+
+        void constructSmallTables(size_t from, size_t to, const std::vector<std::pair<size_t, HashedKey>> &hashedKeys,
+                                  std::vector<size_t> &emptySlots,
+                                  std::vector<std::vector<std::pair<uint64_t, uint8_t>>> &maps) {
             IrregularCuckooHashTableConfig cuckooConfig;
             cuckooConfig.threshold1 = config.threshold1;
             cuckooConfig.threshold2 = config.threshold2;
             cuckooConfig.maxEntries = config.smallTableSize * 1.2 + 100;
             IrregularCuckooHashTable irregularCuckooHashTable(cuckooConfig);
-            std::vector<size_t> emptySlots;
-            if constexpr (minimal) {
-                emptySlots.reserve(N / config.loadFactor - N);
+            size_t sizePrefix = 0;
+
+            // Find key to start with
+            size_t keyIdx = (double(from) / double(numSmallTables)) * N; // Rough estimate
+            while (hashedKeys[keyIdx].first < from) {
+                keyIdx++;
+            }
+            while (hashedKeys[keyIdx].first > from) {
+                keyIdx--;
             }
 
-            for (size_t tableIdx = 0; tableIdx < numSmallTables; tableIdx++) {
+            for (size_t bucketIdx = from; bucketIdx < to; bucketIdx++) {
                 irregularCuckooHashTable.clear();
-                while (hashedKeys[keyIdx].first == tableIdx) {
+                while (hashedKeys[keyIdx].first == bucketIdx) {
                     irregularCuckooHashTable.prepare(hashedKeys[keyIdx].second);
                     keyIdx++;
                 }
@@ -169,7 +229,7 @@ class SicHash {
                         throw std::logic_error("Selected thresholds that cannot be constructed");
                     }
                 }
-                bucketInfo.emplace_back(sizePrefix, seed);
+                bucketInfo[bucketIdx] = BucketInfo(sizePrefix, seed);
 
                 for (size_t k = 0; k < irregularCuckooHashTable.size(); k++) {
                     IrregularCuckooHashTable::TableEntry &entry = irregularCuckooHashTable.heap[k];
@@ -184,26 +244,7 @@ class SicHash {
                 }
                 sizePrefix += tableM;
             }
-
-            bucketInfo.emplace_back(sizePrefix, 0);
-            if (!config.silent) {
-                std::cout<<"On average, the small hash tables needed to be retried "
-                         <<(double)(unnecessaryConstructions+numSmallTables)/(double)numSmallTables<<" times"<<std::endl;
-                std::cout<<"Constructing Ribbon"<<std::endl;
-            }
-            ribbon1 = new SimpleRibbon<1, ribbonWidth>(maps[0b001]);
-            ribbon2 = new SimpleRibbon<2, ribbonWidth>(maps[0b011]);
-            ribbon3 = new SimpleRibbon<3, ribbonWidth>(maps[0b111]);
-
-            if constexpr (minimal) {
-                minimalRemap = new util::EliasFano<minimalFanoLowerBits>(emptySlots.size(), emptySlots.back() + 1);
-                for (size_t slot : emptySlots) {
-                    minimalRemap->push_back(slot);
-                }
-                minimalRemap->buildRankSelect();
-                emptySlots.clear();
-                emptySlots.shrink_to_fit();
-            }
+            bucketInfo[from].offset = sizePrefix;
         }
 
         ~SicHash() {
@@ -258,8 +299,9 @@ class SicHash {
             } else {
                 hashFunction = ribbon3->retrieve(hash.mhc);
             }
-            size_t M = bucketInfo[smallTable + 1].offset - bucketInfo[smallTable].offset;
-            size_t result = hash.hash(hashFunction + bucketInfo[smallTable].seed, M) + bucketInfo[smallTable].offset;
+            size_t smallTableM = bucketInfo[smallTable + 1].offset - bucketInfo[smallTable].offset;
+            size_t result = hash.hash(hashFunction + bucketInfo[smallTable].seed, smallTableM)
+                    + bucketInfo[smallTable].offset;
             if constexpr (minimal) {
                 if (result >= N) {
                     return *minimalRemap->at(result - N);

@@ -55,7 +55,10 @@ int main(int argc, char** argv) {
         std::vector<bool> taken(keys.size() / sicHashTable.config.loadFactor + 100, false); // +100 for rounding
         for (std::string &key : keys) {
             size_t retrieved = sicHashTable(key);
-            if (taken[retrieved]) {
+            if (retrieved > taken.size()) {
+                std::cerr << "Error: out of range" << std::endl;
+                return -1;
+            } else if (taken[retrieved]) {
                 std::cerr << "Error: not minimal" << std::endl;
                 return -1;
             }

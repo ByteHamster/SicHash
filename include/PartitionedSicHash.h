@@ -18,6 +18,7 @@ class PartitionedSicHash {
     public:
         PartitionedSicHash(const std::vector<std::string> &keys, SicHashConfig config, size_t numThreads)
                 : numThreads(numThreads) {
+            children.resize(numThreads);
             if (numThreads == 1) {
                 children[0] = new SicHash<minimal, ribbonWidth, minimalFanoLowerBits>(keys, config);
                 childOffsets.push_back(0);
@@ -35,7 +36,6 @@ class PartitionedSicHash {
                 size_t child = hash.hash(HASH_FUNCTION_CHILD_ASSIGNMENT, numThreads);
                 childInput[child].push_back(hash);
             }
-            children.resize(numThreads);
             std::vector<std::thread> threads;
             std::atomic<bool> hadException = false;
             for (size_t i = 0; i < numThreads; i++) {

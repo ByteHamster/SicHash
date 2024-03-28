@@ -151,11 +151,14 @@ class SicHash {
             hashedKeys.emplace_back(numSmallTables + 1, 0); // Sentinel
 
             std::vector<size_t> emptySlots;
+            std::vector<size_t> takenSlotsOutsideRange;
             if constexpr (minimal) {
                 emptySlots.reserve(N / config.loadFactor - N);
+                takenSlotsOutsideRange.reserve(N / config.loadFactor - N);
             }
-            constructSmallTables(0, numSmallTables, hashedKeys, emptySlots, maps);
-            bucketInfo[numSmallTables].offset = bucketInfo[0].offset;
+            constructSmallTables(0, numSmallTables, hashedKeys, emptySlots, maps, takenSlotsOutsideRange);
+            size_t M = bucketInfo[0].offset;
+            bucketInfo[numSmallTables].offset = M;
             bucketInfo[0].offset = 0;
 
             if (!config.silent) {
@@ -176,13 +179,25 @@ class SicHash {
             }
 
             if constexpr (minimal) {
-                minimalRemap = new util::EliasFano<minimalFanoLowerBits>(emptySlots.size(), emptySlots.back() + 1);
-                for (size_t slot : emptySlots) {
+                std::vector<size_t> emptySlotsWithGaps;
+                emptySlots.reserve(N / config.loadFactor - N);
+                size_t emptySlotsIdx = 0;
+                size_t takenSlotsOutsideIdx = 0;
+                for (size_t slot = N; slot < M; slot++) {
+                    if (takenSlotsOutsideRange[takenSlotsOutsideIdx] < slot) {
+                        takenSlotsOutsideIdx++;
+                    }
+                    emptySlotsWithGaps.push_back(emptySlots[emptySlotsIdx]);
+                    if (takenSlotsOutsideRange[takenSlotsOutsideIdx] == slot) {
+                        emptySlotsIdx++; // Consume empty slot
+                    }
+                }
+                minimalRemap = new util::EliasFano<minimalFanoLowerBits>(
+                        emptySlotsWithGaps.size(), emptySlotsWithGaps.back() + 1);
+                for (size_t slot : emptySlotsWithGaps) {
                     minimalRemap->push_back(slot);
                 }
                 minimalRemap->buildRankSelect();
-                emptySlots.clear();
-                emptySlots.shrink_to_fit();
             }
         }
 
@@ -197,7 +212,8 @@ class SicHash {
 
         void constructSmallTables(size_t from, size_t to, const std::vector<std::pair<size_t, HashedKey>> &hashedKeys,
                                   std::vector<size_t> &emptySlots,
-                                  std::vector<std::vector<std::pair<uint64_t, uint8_t>>> &maps) {
+                                  std::vector<std::vector<std::pair<uint64_t, uint8_t>>> &maps,
+                                  std::vector<size_t> &takenSlotsOutsideRange) {
             IrregularCuckooHashTableConfig cuckooConfig;
             cuckooConfig.threshold1 = config.threshold1;
             cuckooConfig.threshold2 = config.threshold2;
@@ -237,8 +253,11 @@ class SicHash {
                 }
                 if constexpr (minimal) {
                     for (size_t k = 0; k < tableM; k++) {
+                        size_t position = sizePrefix + k;
                         if (irregularCuckooHashTable.cells[k] == nullptr) {
-                            emptySlots.push_back(sizePrefix + k);
+                            emptySlots.push_back(position);
+                        } else if (position >= N) {
+                            takenSlotsOutsideRange.push_back(position);
                         }
                     }
                 }

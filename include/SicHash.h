@@ -113,6 +113,7 @@ class SicHash {
         SimpleRibbon<3, ribbonWidth> *ribbon3 = nullptr;
         util::EliasFano<minimalFanoLowerBits> *minimalRemap = nullptr;
         size_t unnecessaryConstructions = 0;
+        size_t M = 0;
 
         // Keys parameter must be an std::vector<std::string> or an std::vector<HashedKey>.
         SicHash(const auto &keys, SicHashConfig _config)
@@ -157,7 +158,7 @@ class SicHash {
                 takenSlotsOutsideRange.reserve(N / config.loadFactor - N);
             }
             constructSmallTables(0, numSmallTables, hashedKeys, emptySlots, maps, takenSlotsOutsideRange);
-            size_t M = bucketInfo[0].offset;
+            M = bucketInfo[0].offset;
             bucketInfo[numSmallTables].offset = M;
             bucketInfo[0].offset = 0;
 
@@ -198,6 +199,7 @@ class SicHash {
                     minimalRemap->push_back(slot);
                 }
                 minimalRemap->buildRankSelect();
+                M = N;
             }
         }
 

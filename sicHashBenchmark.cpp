@@ -1,6 +1,7 @@
 #include <chrono>
 #include <tlx/cmdline_parser.hpp>
 #include <SicHash.h>
+#include <PartitionedSicHash.h>
 #include "BenchmarkData.h"
 
 #define DO_NOT_OPTIMIZE(value) asm volatile ("" : : "r,m"(value) : "memory")
@@ -28,7 +29,7 @@ int main(int argc, char** argv) {
     usleep(1000*1000);
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    sichash::SicHash sicHashTable(keys, config);
+    sichash::PartitionedSicHash sicHashTable(keys, config, 4);
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     long constructionTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
 
@@ -52,7 +53,7 @@ int main(int argc, char** argv) {
         end = std::chrono::steady_clock::now();
         queryTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
         std::cout << "Checking" << std::endl;
-        std::vector<bool> taken(keys.size() / sicHashTable.config.loadFactor + 100, false); // +100 for rounding
+        std::vector<bool> taken(keys.size() / config.loadFactor + 100, false); // +100 for rounding
         for (std::string &key : keys) {
             size_t retrieved = sicHashTable(key);
             if (retrieved > taken.size()) {
@@ -72,9 +73,7 @@ int main(int argc, char** argv) {
               << " t1=" << config.class1Percentage()
               << " t2=" << config.class2Percentage()
               << " spaceUsage=" << (double) sicHashTable.spaceUsage() / keys.size()
-              << " spaceUsageTheory=" << (double) sicHashTable.spaceUsageTheory() / keys.size()
               << " bucketSize=" << config.smallTableSize
-              << " averageTries=" << (double) sicHashTable.unnecessaryConstructions / sicHashTable.numSmallTables
               << " constructionTimeMillis=" << constructionTime
               << " queryTimeMillis=" << queryTime
               << " numQueries=" << numQueries

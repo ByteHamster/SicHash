@@ -25,23 +25,44 @@ class PartitionedSicHash {
                 childOffsets.push_back(children[0]->M);
                 return;
             }
-            std::vector<std::vector<HashedKey>> childInput;
-            childInput.resize(numThreads);
+            std::vector<std::vector<std::vector<HashedKey>>> childInputByThread;
+            childInputByThread.resize(numThreads);
             const size_t N = keys.size();
-            for (auto &singleChildInput : childInput) {
-                singleChildInput.reserve(N / numThreads);
+            for (auto &singleThread : childInputByThread) {
+                singleThread.resize(numThreads);
+                for (auto &singleChildInput : singleThread) {
+                    singleChildInput.reserve(N / (numThreads * numThreads));
+                }
             }
-            for (const std::string &key : keys) {
-                HashedKey hash = HashedKey(key);
-                size_t child = hash.hash(HASH_FUNCTION_CHILD_ASSIGNMENT, numThreads);
-                childInput[child].push_back(hash);
-            }
+            size_t keysPerThread = (N + numThreads) / numThreads;
             std::vector<std::thread> threads;
+            for (size_t t = 0; t < numThreads; t++) {
+                threads.emplace_back([&, t]() {
+                    size_t from = t * keysPerThread;
+                    size_t to = std::min(N, (t + 1) * keysPerThread);
+                    for (size_t i = from; i < to; i++) {
+                        HashedKey hash = HashedKey(keys[i]);
+                        size_t child = hash.hash(HASH_FUNCTION_CHILD_ASSIGNMENT, numThreads);
+                        childInputByThread[t][child].push_back(hash);
+                    }
+                });
+            }
+            for (size_t i = 0; i < numThreads; i++) {
+                threads[i].join();
+            }
+            threads.clear();
             std::atomic<bool> hadException = false;
             for (size_t i = 0; i < numThreads; i++) {
                 threads.emplace_back([&, i]() {
+                    std::vector<HashedKey> input;
+                    input.reserve(N / numThreads);
+                    for (size_t t = 0; t < numThreads; t++) {
+                        input.insert(input.end(), childInputByThread[t][i].begin(),childInputByThread[t][i].end());
+                        childInputByThread[t][i].resize(0);
+                        childInputByThread[t][i].shrink_to_fit();
+                    }
                     try {
-                        children[i] = new SicHash<minimal, ribbonWidth, minimalFanoLowerBits>(childInput[i], config);
+                        children[i] = new SicHash<minimal, ribbonWidth, minimalFanoLowerBits>(input, config);
                     } catch (const std::exception& e) {
                         std::cout<<"Error: "<<e.what()<<std::endl;
                         hadException = true;

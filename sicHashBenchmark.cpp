@@ -60,19 +60,20 @@ int main(int argc, char** argv) {
                 std::cerr << "Error: out of range" << std::endl;
                 return -1;
             } else if (taken[retrieved]) {
-                std::cerr << "Error: not minimal" << std::endl;
+                std::cerr << "Error: collision" << std::endl;
                 return -1;
             }
             taken[retrieved] = true;
         }
     }
 
+    size_t spaceUsage = sicHashTable.spaceUsage();
     std::cout << "RESULT"
               << " loadFactor=" << config.loadFactor
               << " N=" << N
               << " t1=" << config.class1Percentage()
               << " t2=" << config.class2Percentage()
-              << " spaceUsage=" << (double) sicHashTable.spaceUsage() / keys.size()
+              << " spaceUsage=" << (double) spaceUsage / keys.size()
               << " bucketSize=" << config.smallTableSize
               << " constructionTimeMillis=" << constructionTime
               << " queryTimeMillis=" << queryTime

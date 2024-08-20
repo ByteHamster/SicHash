@@ -276,10 +276,12 @@ class SicHash {
 
         /** Estimate for the space usage of this structure, in bits */
         [[nodiscard]] size_t spaceUsage() const {
-            size_t bytes = ribbon1->size() + ribbon2->size() + ribbon3->size()
-                    + bucketInfo.size() * sizeof(bucketInfo.at(0));
+            size_t ribbonBytes = ribbon1->size() + ribbon2->size() + ribbon3->size();
+            std::cout<<"Ribbon space: "<<8.0*ribbonBytes/N<<std::endl;
+            size_t bytes = ribbonBytes + bucketInfo.size() * sizeof(bucketInfo.at(0));
             if constexpr (minimal) {
                 bytes += minimalRemap->space();
+                std::cout<<"Remap space: "<<8.0*minimalRemap->space()/N<<std::endl;
             }
             return bytes * 8;
         }

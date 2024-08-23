@@ -6,7 +6,13 @@
 #include <ips2ra.hpp>
 
 namespace sichash {
-using seed_t = uint8_t;
+
+constexpr static size_t SEED_BITS = 16;
+
+struct BucketInfo {
+    size_t offset : 48;
+    size_t seed   : SEED_BITS;
+};
 
 struct SicHashConfig {
     // Load factor of the PHF. When constructing an MPHF, this is the load factor before compaction.
@@ -58,7 +64,7 @@ struct SicHashConfig {
      */
     SicHashConfig &spaceBudget(float spaceBudget, float _x) {
         x = _x;
-        spaceBudget -= 8.0 * (sizeof(size_t) + sizeof(seed_t)) / smallTableSize;
+        spaceBudget -= 8.0 * (sizeof(BucketInfo)) / smallTableSize;
         if (x < 0.0 || x > 1.0) {
             throw std::logic_error("x must be in [0, 1]");
         }
@@ -103,10 +109,6 @@ class SicHash {
         const SicHashConfig config;
         size_t N;
         const size_t numSmallTables;
-        struct BucketInfo {
-            size_t offset : 48;
-            size_t seed   : 16;
-        };
         std::vector<BucketInfo> bucketInfo;
         SimpleRibbon<1, ribbonWidth> *ribbon1 = nullptr;
         SimpleRibbon<2, ribbonWidth> *ribbon2 = nullptr;
@@ -241,7 +243,7 @@ class SicHash {
                 while (!irregularCuckooHashTable.construct(tableM, seed)) {
                     unnecessaryConstructions++;
                     seed++;
-                    if (seed >= std::numeric_limits<seed_t>::max()) {
+                    if (seed >= (1ul << SEED_BITS)) {
                         throw std::logic_error("Selected thresholds that cannot be constructed");
                     }
                 }

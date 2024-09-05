@@ -272,6 +272,9 @@ class SicHash {
             delete ribbon1;
             delete ribbon2;
             delete ribbon3;
+            if (minimal && minimalRemap != nullptr) {
+                delete minimalRemap;
+            }
         }
 
         /** Estimate for the space usage of this structure, in bits */

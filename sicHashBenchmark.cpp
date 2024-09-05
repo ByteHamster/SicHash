@@ -26,6 +26,20 @@ void run() {
 
     long queryTime = 0;
     if (numQueries > 0) {
+        std::cout << "Checking" << std::endl;
+        std::vector<bool> taken(minimal ? keys.size() : (keys.size() / sicHashTable.config.loadFactor + 100), false); // +100 for rounding
+        for (std::string &key : keys) {
+            size_t retrieved = sicHashTable(key);
+            if (retrieved > taken.size()) {
+                std::cerr << "Error: out of range" << std::endl;
+                exit(1);
+            } else if (taken[retrieved]) {
+                std::cerr << "Error: collision" << std::endl;
+                exit(1);
+            }
+            taken[retrieved] = true;
+        }
+
         std::cout<<"Preparing query plan"<<std::endl;
         std::vector<std::string> queryPlan;
         queryPlan.reserve(numQueries);
@@ -43,19 +57,6 @@ void run() {
         }
         end = std::chrono::steady_clock::now();
         queryTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-        std::cout << "Checking" << std::endl;
-        std::vector<bool> taken(keys.size() / sicHashTable.config.loadFactor + 100, false); // +100 for rounding
-        for (std::string &key : keys) {
-            size_t retrieved = sicHashTable(key);
-            if (retrieved > taken.size()) {
-                std::cerr << "Error: out of range" << std::endl;
-                exit(1);
-            } else if (taken[retrieved]) {
-                std::cerr << "Error: not minimal" << std::endl;
-                exit(1);
-            }
-            taken[retrieved] = true;
-        }
     }
 
     std::cout << "RESULT"

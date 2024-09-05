@@ -8,9 +8,9 @@ std::vector<std::string> generateInputData(size_t N) {
     std::vector<std::string> inputData;
     inputData.reserve(N);
     auto time = std::chrono::system_clock::now();
-    long constructionTime = std::chrono::duration_cast<std::chrono::milliseconds>(time.time_since_epoch()).count();
-    util::XorShift64 prng(constructionTime);
-    std::cout<<"Generating input"<<std::flush;
+    long seed = std::chrono::duration_cast<std::chrono::milliseconds>(time.time_since_epoch()).count();
+    util::XorShift64 prng(seed);
+    std::cout<<"Generating input (seed "<<seed<<")"<<std::endl;
     char string[200];
     for (size_t i = 0; i < N; i++) {
         if ((i % (N/5)) == 0) {

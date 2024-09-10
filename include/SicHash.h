@@ -106,9 +106,9 @@ template<bool minimal=false, size_t ribbonWidth=64, int minimalFanoLowerBits = 3
 class SicHash {
     public:
         static constexpr size_t HASH_FUNCTION_BUCKET_ASSIGNMENT = 42;
-        const SicHashConfig config;
+        SicHashConfig config;
         size_t N;
-        const size_t numSmallTables;
+        size_t numSmallTables;
         std::vector<BucketInfo> bucketInfo;
         SimpleRibbon<1, ribbonWidth> *ribbon1 = nullptr;
         SimpleRibbon<2, ribbonWidth> *ribbon2 = nullptr;
@@ -128,6 +128,7 @@ class SicHash {
             }
             std::vector<std::pair<size_t, HashedKey>> hashedKeys(N);
             initialHash(0, N, keys, hashedKeys);
+            // Note that the order of duplicates in ips2ra is non-deterministic
             ips2ra::sort(hashedKeys.begin(), hashedKeys.end(),
                          [](const std::pair<size_t, HashedKey> &pair) { return pair.first; });
 
@@ -137,6 +138,46 @@ class SicHash {
             }
 
             construct(hashedKeys);
+        }
+
+        SicHash(std::istream &is) {
+            uint64_t TAG;
+            is.read(reinterpret_cast<char *>(&TAG), sizeof(TAG));
+            assert(TAG == 0x51cAa5A);
+            is.read(reinterpret_cast<char *>(&config), sizeof(config));
+            is.read(reinterpret_cast<char *>(&N), sizeof(N));
+            is.read(reinterpret_cast<char *>(&numSmallTables), sizeof(numSmallTables));
+            is.read(reinterpret_cast<char *>(&unnecessaryConstructions), sizeof(unnecessaryConstructions));
+            bucketInfo.resize(numSmallTables + 1);
+            is.read(reinterpret_cast<char *>(bucketInfo.data()), bucketInfo.size() * sizeof(BucketInfo));
+            ribbon1 = new SimpleRibbon<1, ribbonWidth>(is);
+            ribbon2 = new SimpleRibbon<2, ribbonWidth>(is);
+            ribbon3 = new SimpleRibbon<3, ribbonWidth>(is);
+            if constexpr (minimal) {
+                minimalRemap = new util::EliasFano<minimalFanoLowerBits>(is);
+            }
+            if (is.bad()) {
+                throw new std::runtime_error("Input stream went bad");
+            }
+        }
+
+        void writeTo(std::ostream &os) {
+            uint64_t TAG = 0x51cAa5A;
+            os.write(reinterpret_cast<const char *>(&TAG), sizeof(TAG));
+            os.write(reinterpret_cast<const char *>(&config), sizeof(config));
+            os.write(reinterpret_cast<const char *>(&N), sizeof(N));
+            os.write(reinterpret_cast<const char *>(&numSmallTables), sizeof(numSmallTables));
+            os.write(reinterpret_cast<const char *>(&unnecessaryConstructions), sizeof(unnecessaryConstructions));
+            os.write(reinterpret_cast<const char *>(bucketInfo.data()), bucketInfo.size() * sizeof(BucketInfo));
+            ribbon1->writeTo(os);
+            ribbon2->writeTo(os);
+            ribbon3->writeTo(os);
+            if constexpr (minimal) {
+                minimalRemap->writeTo(os);
+            }
+            if (os.bad()) {
+                throw new std::runtime_error("Output stream went bad");
+            }
         }
 
         void construct(std::vector<std::pair<size_t, HashedKey>> &hashedKeys) {
@@ -279,7 +320,7 @@ class SicHash {
 
         /** Estimate for the space usage of this structure, in bits */
         [[nodiscard]] size_t spaceUsage() const {
-            size_t bytes = ribbon1->size() + ribbon2->size() + ribbon3->size()
+            size_t bytes = ribbon1->sizeBytes() + ribbon2->sizeBytes() + ribbon3->sizeBytes()
                     + bucketInfo.size() * sizeof(bucketInfo.at(0));
             if constexpr (minimal) {
                 bytes += minimalRemap->space();
@@ -289,7 +330,7 @@ class SicHash {
 
         /** Theoretic space usage when pretending to encode bucket metadata with Rice and Elias-Fano */
         [[nodiscard]] size_t spaceUsageTheory() const {
-            size_t bytes = ribbon1->size() + ribbon2->size() + ribbon3->size();
+            size_t bytes = ribbon1->sizeBytes() + ribbon2->sizeBytes() + ribbon3->sizeBytes();
             if constexpr (minimal) {
                 bytes += minimalRemap->space();
             }

@@ -1,14 +1,20 @@
 # SicHash
 
-A (Minimal) Perfect Hash Function based on irregular cuckoo hashing, retrieval, and overloading.
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+![Build status](https://github.com/ByteHamster/SicHash/actions/workflows/build.yml/badge.svg)
 
-### Construction performance (n = 5 million)
+A perfect hash function (PHF) maps a set S of n keys to the first m integers without collisions.
+It is called _minimal_ perfect (MPHF) if m=n.
+Perfect hash functions have applications in databases, bioinformatics, and as a building block of various space-efficient data structures.
 
-[<img src="https://raw.githubusercontent.com/ByteHamster/SicHash/main/plots-construction.png" alt="Plots preview">](https://arxiv.org/pdf/2210.01560)
+SicHash is a (minimal) perfect hash function based on irregular cuckoo hashing, retrieval, and overloading.
+Each input key has a small number of choices for output positions.
+Using cuckoo hashing, SicHash determines a mapping from each key to one of its choices,
+such that there are no collisions between keys.
+It then stores the mapping from keys to their candidate index space-efficiently using
+the [BuRR](https://github.com/lorenzhs/BuRR) retrieval data structure.
 
-### Query performance
-
-[<img src="https://raw.githubusercontent.com/ByteHamster/SicHash/main/plots-query.png" alt="Plots preview">](https://arxiv.org/pdf/2210.01560)
+SicHash offers a very good trade-off between construction performance, query performance, and space consumption.
 
 ### Library Usage
 
@@ -18,6 +24,23 @@ Clone (with submodules) this repo and add the following to your `CMakeLists.txt`
 add_subdirectory(path/to/SicHash)
 target_link_libraries(YourTarget PRIVATE SicHash)
 ```
+
+Constructing a SicHash perfect hash function is then straightforward:
+
+```cpp
+std::vector<std::string> keys = {"abc", "def", "123", "456"};
+sichash::SicHashConfig config;
+sichash::SicHash<true> hashFunc(keys, config);
+std::cout << hashFunc("abc") << std::endl;
+```
+
+### Construction Performance
+
+[![Plots preview](https://raw.githubusercontent.com/ByteHamster/SicHash/main/plots-construction.png)](https://arxiv.org/pdf/2210.01560)
+
+### Query Performance
+
+[![Plots preview](https://raw.githubusercontent.com/ByteHamster/SicHash/main/plots-query.png)](https://arxiv.org/pdf/2210.01560)
 
 ### Reproducing Experiments
 

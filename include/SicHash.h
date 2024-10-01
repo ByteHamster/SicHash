@@ -6,7 +6,13 @@
 #include <ips2ra.hpp>
 
 namespace sichash {
-using seed_t = uint8_t;
+
+constexpr static size_t SEED_BITS = 16;
+
+struct BucketInfo {
+    size_t offset : 48;
+    size_t seed   : SEED_BITS;
+};
 
 struct SicHashConfig {
     // Load factor of the PHF. When constructing an MPHF, this is the load factor before compaction.
@@ -58,7 +64,7 @@ struct SicHashConfig {
      */
     SicHashConfig &spaceBudget(float spaceBudget, float _x) {
         x = _x;
-        spaceBudget -= 8.0 * (sizeof(size_t) + sizeof(seed_t)) / smallTableSize;
+        spaceBudget -= 8.0 * (sizeof(BucketInfo)) / smallTableSize;
         if (x < 0.0 || x > 1.0) {
             throw std::logic_error("x must be in [0, 1]");
         }
@@ -100,17 +106,13 @@ template<bool minimal=false, size_t ribbonWidth=64, int minimalFanoLowerBits = 3
 class SicHash {
     public:
         static constexpr size_t HASH_FUNCTION_BUCKET_ASSIGNMENT = 42;
-        const SicHashConfig config;
+        SicHashConfig config;
         size_t N;
-        const size_t numSmallTables;
-        struct BucketInfo {
-            size_t offset : 48;
-            size_t seed   : 16;
-        };
+        size_t numSmallTables;
         std::vector<BucketInfo> bucketInfo;
-        SimpleRibbon<1, ribbonWidth> *ribbon1 = nullptr;
-        SimpleRibbon<2, ribbonWidth> *ribbon2 = nullptr;
-        SimpleRibbon<3, ribbonWidth> *ribbon3 = nullptr;
+        SimpleRibbon<1, ribbonWidth> ribbon1;
+        SimpleRibbon<2, ribbonWidth> ribbon2;
+        SimpleRibbon<3, ribbonWidth> ribbon3;
         util::EliasFano<minimalFanoLowerBits> *minimalRemap = nullptr;
         size_t unnecessaryConstructions = 0;
         size_t M = 0;
@@ -127,6 +129,7 @@ class SicHash {
             }
             std::vector<std::pair<size_t, HashedKey>> hashedKeys(N);
             initialHash(0, N, keys, hashedKeys);
+            // Note that the order of duplicates in ips2ra is non-deterministic
             ips2ra::sort(hashedKeys.begin(), hashedKeys.end(),
                          [](const std::pair<size_t, HashedKey> &pair) { return pair.first; });
 
@@ -136,6 +139,46 @@ class SicHash {
             }
 
             construct(hashedKeys);
+        }
+
+        explicit SicHash(std::istream &is) {
+            uint64_t TAG;
+            is.read(reinterpret_cast<char *>(&TAG), sizeof(TAG));
+            assert(TAG == 0x51cAa5A);
+            is.read(reinterpret_cast<char *>(&config), sizeof(config));
+            is.read(reinterpret_cast<char *>(&N), sizeof(N));
+            is.read(reinterpret_cast<char *>(&numSmallTables), sizeof(numSmallTables));
+            is.read(reinterpret_cast<char *>(&unnecessaryConstructions), sizeof(unnecessaryConstructions));
+            bucketInfo.resize(numSmallTables + 1);
+            is.read(reinterpret_cast<char *>(bucketInfo.data()), bucketInfo.size() * sizeof(BucketInfo));
+            ribbon1 = SimpleRibbon<1, ribbonWidth>(is);
+            ribbon2 = SimpleRibbon<2, ribbonWidth>(is);
+            ribbon3 = SimpleRibbon<3, ribbonWidth>(is);
+            if constexpr (minimal) {
+                minimalRemap = new util::EliasFano<minimalFanoLowerBits>(is);
+            }
+            if (is.bad()) {
+                throw std::runtime_error("Input stream went bad");
+            }
+        }
+
+        void writeTo(std::ostream &os) {
+            uint64_t TAG = 0x51cAa5A;
+            os.write(reinterpret_cast<const char *>(&TAG), sizeof(TAG));
+            os.write(reinterpret_cast<const char *>(&config), sizeof(config));
+            os.write(reinterpret_cast<const char *>(&N), sizeof(N));
+            os.write(reinterpret_cast<const char *>(&numSmallTables), sizeof(numSmallTables));
+            os.write(reinterpret_cast<const char *>(&unnecessaryConstructions), sizeof(unnecessaryConstructions));
+            os.write(reinterpret_cast<const char *>(bucketInfo.data()), bucketInfo.size() * sizeof(BucketInfo));
+            ribbon1.writeTo(os);
+            ribbon2.writeTo(os);
+            ribbon3.writeTo(os);
+            if constexpr (minimal) {
+                minimalRemap->writeTo(os);
+            }
+            if (os.bad()) {
+                throw std::runtime_error("Output stream went bad");
+            }
         }
 
         void construct(std::vector<std::pair<size_t, HashedKey>> &hashedKeys) {
@@ -171,9 +214,9 @@ class SicHash {
                 std::cout<<"Constructing Ribbon"<<std::endl;
             }
 
-            ribbon1 = new SimpleRibbon<1, ribbonWidth>(maps[0b001]);
-            ribbon2 = new SimpleRibbon<2, ribbonWidth>(maps[0b011]);
-            ribbon3 = new SimpleRibbon<3, ribbonWidth>(maps[0b111]);
+            ribbon1 = SimpleRibbon<1, ribbonWidth>(maps[0b001]);
+            ribbon2 = SimpleRibbon<2, ribbonWidth>(maps[0b011]);
+            ribbon3 = SimpleRibbon<3, ribbonWidth>(maps[0b111]);
             if (!config.silent) {
                 std::cout << "Ribbon took " << std::chrono::duration_cast<std::chrono::milliseconds>(
                         std::chrono::steady_clock::now() - begin).count() << std::endl;
@@ -243,7 +286,7 @@ class SicHash {
                 while (!irregularCuckooHashTable.construct(tableM, seed)) {
                     unnecessaryConstructions++;
                     seed++;
-                    if (seed >= std::numeric_limits<seed_t>::max()) {
+                    if (seed >= (1ul << SEED_BITS)) {
                         throw std::logic_error("Selected thresholds that cannot be constructed");
                     }
                 }
@@ -269,16 +312,15 @@ class SicHash {
         }
 
         ~SicHash() {
-            delete ribbon1;
-            delete ribbon2;
-            delete ribbon3;
+            if (minimal && minimalRemap != nullptr) {
+                delete minimalRemap;
+            }
         }
 
         /** Estimate for the space usage of this structure, in bits */
         [[nodiscard]] size_t spaceUsage() const {
-            size_t ribbonBytes = ribbon1->size() + ribbon2->size() + ribbon3->size();
-            std::cout<<"Ribbon space: "<<8.0*ribbonBytes/N<<std::endl;
-            size_t bytes = ribbonBytes + bucketInfo.size() * sizeof(bucketInfo.at(0));
+            size_t bytes = ribbon1.sizeBytes() + ribbon2.sizeBytes() + ribbon3.sizeBytes()
+                    + bucketInfo.size() * sizeof(bucketInfo.at(0));
             if constexpr (minimal) {
                 bytes += minimalRemap->space();
                 std::cout<<"Remap space: "<<8.0*minimalRemap->space()/N<<std::endl;
@@ -288,7 +330,7 @@ class SicHash {
 
         /** Theoretic space usage when pretending to encode bucket metadata with Rice and Elias-Fano */
         [[nodiscard]] size_t spaceUsageTheory() const {
-            size_t bytes = ribbon1->size() + ribbon2->size() + ribbon3->size();
+            size_t bytes = ribbon1.sizeBytes() + ribbon2.sizeBytes() + ribbon3.sizeBytes();
             if constexpr (minimal) {
                 bytes += minimalRemap->space();
             }
@@ -316,11 +358,11 @@ class SicHash {
             __builtin_prefetch(&bucketInfo[smallTable],0,0);
             uint8_t hashFunction;
             if (hash.mhc <= config.threshold1) {
-                hashFunction = ribbon1->retrieve(hash.mhc);
+                hashFunction = ribbon1.retrieve(hash.mhc);
             } else if (hash.mhc <= config.threshold2) {
-                hashFunction = ribbon2->retrieve(hash.mhc);
+                hashFunction = ribbon2.retrieve(hash.mhc);
             } else {
-                hashFunction = ribbon3->retrieve(hash.mhc);
+                hashFunction = ribbon3.retrieve(hash.mhc);
             }
             size_t smallTableM = bucketInfo[smallTable + 1].offset - bucketInfo[smallTable].offset;
             size_t result = hash.hash(hashFunction + bucketInfo[smallTable].seed, smallTableM)

@@ -18,7 +18,7 @@ void run() {
     config.percentages(t1, t2);
     std::vector<std::string> keys = generateInputData(N);
     std::cout << "Cooldown" << std::endl;
-    usleep(1000*1000);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     SicHashInstance sicHashTable(keys, config);
@@ -49,7 +49,7 @@ void run() {
             queryPlan.push_back(keys[prng(N)]);
         }
         std::cout << "Cooldown" << std::endl;
-        usleep(1000*1000);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         std::cout << "Querying" << std::endl;
         begin = std::chrono::steady_clock::now();
         for (std::string &key : queryPlan) {

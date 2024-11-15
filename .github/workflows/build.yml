@@ -18,7 +18,7 @@ jobs:
           sudo apt-get install --assume-yes --no-install-recommends ca-certificates cmake git libtbb-dev gcc-${{ matrix.version }} g++-${{ matrix.version }}
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${{ matrix.version }} ${{ matrix.version }}
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${{ matrix.version }} ${{ matrix.version }}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Build

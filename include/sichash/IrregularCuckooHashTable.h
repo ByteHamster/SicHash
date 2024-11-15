@@ -1,10 +1,12 @@
 #pragma once
+
 #include <vector>
 #include <cassert>
 #include <queue>
-#include <Function.h>
-#include <MurmurHash64.h>
 #include <iostream>
+
+#include <bytehamster/util/Function.h>
+#include <bytehamster/util/MurmurHash64.h>
 
 namespace sichash {
 struct HashedKey {
@@ -19,13 +21,13 @@ struct HashedKey {
     }
 
     explicit HashedKey(const std::string &element, uint32_t seed = 0) {
-        uint64_t stringHash = util::MurmurHash64(element.data(), element.length());
+        uint64_t stringHash = bytehamster::util::MurmurHash64(element.data(), element.length());
         uint64_t modified = stringHash + seed;
-        mhc = util::MurmurHash64(&modified, sizeof(uint64_t));
+        mhc = bytehamster::util::MurmurHash64(&modified, sizeof(uint64_t));
     }
 
     [[nodiscard]] inline uint64_t hash(int hashFunctionIndex, size_t range) const {
-        return util::fastrange64(util::remix(mhc + hashFunctionIndex), range);
+        return bytehamster::util::fastrange64(bytehamster::util::remix(mhc + hashFunctionIndex), range);
     }
 };
 

@@ -1,5 +1,6 @@
 #include <chrono>
 #include <tlx/cmdline_parser.hpp>
+#include <bytehamster/util/XorShift64.h>
 #include <SicHash.h>
 #include "BenchmarkData.h"
 
@@ -43,7 +44,7 @@ void run() {
         std::cout<<"Preparing query plan"<<std::endl;
         std::vector<std::string> queryPlan;
         queryPlan.reserve(numQueries);
-        util::XorShift64 prng(time(nullptr));
+        bytehamster::util::XorShift64 prng(time(nullptr));
         for (size_t i = 0; i < numQueries; i++) {
             queryPlan.push_back(keys[prng(N)]);
         }

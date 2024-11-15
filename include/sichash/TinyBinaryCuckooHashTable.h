@@ -2,9 +2,9 @@
 #include <vector>
 #include <cassert>
 #include <queue>
-#include <Function.h>
-#include <MurmurHash64.h>
 #include <cstring>
+#include <bytehamster/util/Function.h>
+#include <bytehamster/util/MurmurHash64.h>
 #include "IrregularCuckooHashTable.h"
 
 namespace sichash {

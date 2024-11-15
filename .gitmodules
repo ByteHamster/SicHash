@@ -1,6 +1,3 @@
-[submodule "sux"]
-	path = extlib/sux
-	url = https://github.com/ByteHamster-etc/sux.git
 [submodule "extlib/util"]
 	path = extlib/util
 	url = https://github.com/ByteHamster/Util.git

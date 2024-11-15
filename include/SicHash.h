@@ -1,9 +1,12 @@
 #pragma once
+
 #include <vector>
-#include "IrregularCuckooHashTable.h"
+
 #include <SimpleRibbon.h>
-#include <EliasFano.h>
+#include <bytehamster/util/EliasFano.h>
 #include <ips2ra.hpp>
+
+#include "sichash/IrregularCuckooHashTable.h"
 
 namespace sichash {
 
@@ -113,7 +116,7 @@ class SicHash {
         SimpleRibbon<1, ribbonWidth> ribbon1;
         SimpleRibbon<2, ribbonWidth> ribbon2;
         SimpleRibbon<3, ribbonWidth> ribbon3;
-        util::EliasFano<minimalFanoLowerBits> *minimalRemap = nullptr;
+        bytehamster::util::EliasFano<minimalFanoLowerBits> *minimalRemap = nullptr;
         size_t unnecessaryConstructions = 0;
 
         // Keys parameter must be an std::vector<std::string> or an std::vector<HashedKey>.
@@ -154,7 +157,7 @@ class SicHash {
             ribbon2 = SimpleRibbon<2, ribbonWidth>(is);
             ribbon3 = SimpleRibbon<3, ribbonWidth>(is);
             if constexpr (minimal) {
-                minimalRemap = new util::EliasFano<minimalFanoLowerBits>(is);
+                minimalRemap = new bytehamster::util::EliasFano<minimalFanoLowerBits>(is);
             }
             if (is.bad()) {
                 throw std::runtime_error("Input stream went bad");
@@ -235,7 +238,7 @@ class SicHash {
                         emptySlotsIdx++; // Consume empty slot
                     }
                 }
-                minimalRemap = new util::EliasFano<minimalFanoLowerBits>(
+                minimalRemap = new bytehamster::util::EliasFano<minimalFanoLowerBits>(
                         emptySlotsWithGaps.size(), emptySlotsWithGaps.back() + 1);
                 for (size_t slot : emptySlotsWithGaps) {
                     minimalRemap->push_back(slot);

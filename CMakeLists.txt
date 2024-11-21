@@ -28,6 +28,10 @@ add_library(SicHash::sichash ALIAS SicHash)
 if(PROJECT_IS_TOP_LEVEL)
     target_compile_options(SicHash INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wextra -Wpedantic -Werror -frecord-gcc-switches>)
 
+    add_executable(Example src/example.cpp)
+    target_link_libraries(Example PRIVATE SicHash)
+    target_compile_features(Example PRIVATE cxx_std_20)
+
     add_executable(Solvers src/solvers.cpp)
     target_link_libraries(Solvers PRIVATE SicHash tlx)
     target_compile_features(Solvers PRIVATE cxx_std_20)

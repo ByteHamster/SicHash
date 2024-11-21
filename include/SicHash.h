@@ -238,8 +238,9 @@ class SicHash {
                         emptySlotsIdx++; // Consume empty slot
                     }
                 }
+                size_t universeSize = emptySlotsWithGaps.empty() ? 10 : emptySlotsWithGaps.back() + 1;
                 minimalRemap = new bytehamster::util::EliasFano<minimalFanoLowerBits>(
-                        emptySlotsWithGaps.size(), emptySlotsWithGaps.back() + 1);
+                        emptySlotsWithGaps.size(), universeSize);
                 for (size_t slot : emptySlotsWithGaps) {
                     minimalRemap->push_back(slot);
                 }

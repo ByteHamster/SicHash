@@ -6,6 +6,10 @@ if(TARGET SicHash)
     return()
 endif()
 
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release")
+endif ()
+
 if(CMAKE_BUILD_TYPE STREQUAL "Release" AND PROJECT_IS_TOP_LEVEL)
     add_compile_options(-march=native)
 endif()

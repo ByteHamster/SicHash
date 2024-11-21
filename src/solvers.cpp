@@ -1,6 +1,6 @@
 #include <chrono>
-#include <IrregularCuckooHashTable.h>
-#include <IrregularCuckooHashTableHK.h>
+#include <sichash/IrregularCuckooHashTable.h>
+#include <sichash/IrregularCuckooHashTableHK.h>
 #include "BenchmarkData.h"
 
 template <typename HashTable>

@@ -1,5 +1,5 @@
 #include <tlx/cmdline_parser.hpp>
-#include <SlowIrregularCuckooHashTable.h>
+#include <sichash/SlowIrregularCuckooHashTable.h>
 #include "BenchmarkData.h"
 
 /**

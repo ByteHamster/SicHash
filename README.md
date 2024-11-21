@@ -18,7 +18,8 @@ SicHash offers a very good trade-off between construction performance, query per
 
 ### Library Usage
 
-Clone (with submodules) this repo and add the following to your `CMakeLists.txt`.
+Clone this repo and add the following to your `CMakeLists.txt`.
+Note that the repo has submodules, so either use `git clone --recursive` or `git submodule update --init --recursive`.
 
 ```
 add_subdirectory(path/to/SicHash)

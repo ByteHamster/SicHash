@@ -51,8 +51,8 @@ struct SicHashConfig {
         if (percentage1 < 0.0 || percentage2 < 0.0) {
             throw std::logic_error("Selected negative thresholds");
         }
-        threshold1 = UINT64_MAX * 0.99999f * percentage1;
-        threshold2 = UINT64_MAX * 0.99999f * (percentage1 + percentage2);
+        threshold1 = static_cast<double>(UINT64_MAX) * 0.99999 * percentage1;
+        threshold2 = static_cast<double>(UINT64_MAX) * 0.99999 * (percentage1 + percentage2);
         if (threshold2 < threshold1) {
             throw std::logic_error("Overflow when determining thresholds");
         }

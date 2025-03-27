@@ -18,7 +18,13 @@ struct BucketInfo {
 };
 
 struct SicHashConfig {
-    // Load factor of the PHF. When constructing an MPHF, this is the load factor before compaction.
+    // When constructing a non-minimal PHF using SicHash<false>, this is the load factor.
+    //     Depending on the selected thresholds, there is a graph theoretic limit to the
+    //     load factor that can still be constructed successfully. Refer to the paper for details.
+    //     This parameter CANNOT be used to switch to minimal perfect hash functions.
+    // When constructing a minimal PHF using SicHash<true>, this is the load factor before compaction.
+    //     This makes it a tuning parameter between construction time and space consumption.
+    //     The same graph theoretic thresholds apply.
     double loadFactor = 0.9;
 
     // Expected size of each of the small cuckoo hash tables.
@@ -126,6 +132,11 @@ class SicHash {
                   N(keys.size()),
                   numSmallTables(N / config.smallTableSize + 1),
                   bucketInfo(numSmallTables + 1) {
+            if (config.loadFactor >= 0.999) {
+                throw std::logic_error(std::string("It looks like you are trying to construct a")
+                    + " minimal PHF directly by selecting a large load factor."
+                    + " Instead, set the template argument minimal=true.");
+            }
             std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
             if (!config.silent) {
                 std::cout << "Creating MHCs" << std::endl;

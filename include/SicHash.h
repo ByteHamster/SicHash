@@ -126,12 +126,25 @@ class SicHash {
         size_t unnecessaryConstructions = 0;
         size_t M = 0;
 
-        // Keys parameter must be an std::vector<std::string> or an std::vector<HashedKey>.
-        SicHash(const auto &keys, SicHashConfig _config)
+        SicHash(const std::vector<std::string> &keys, SicHashConfig _config) : SicHash(keys, _config, true) {
+        }
+
+        SicHash(const std::vector<HashedKey> &keys, SicHashConfig _config) : SicHash(keys, _config, true) {
+        }
+
+        /// This constructor expects a list of hashed keys.
+        /// Do not use this constructor directly with your payload data, even if it is integers.
+        /// Run the data through a hash function first.
+        SicHash(const std::vector<uint64_t> &keys, SicHashConfig _config) : SicHash(keys, _config, true) {
+        }
+
+    private:
+        SicHash(const auto &keys, const SicHashConfig &_config, const bool internal)
                 : config(_config),
                   N(keys.size()),
                   numSmallTables(N / config.smallTableSize + 1),
                   bucketInfo(numSmallTables + 1) {
+            (void) internal;
             if (config.loadFactor >= 0.999) {
                 throw std::logic_error(std::string("It looks like you are trying to construct a")
                     + " minimal PHF directly by selecting a large load factor."
@@ -155,6 +168,7 @@ class SicHash {
             construct(hashedKeys);
         }
 
+    public:
         explicit SicHash(std::istream &is) {
             uint64_t TAG;
             is.read(reinterpret_cast<char *>(&TAG), sizeof(TAG));
@@ -263,10 +277,16 @@ class SicHash {
 
         void initialHash(size_t from, size_t to, const auto &keys,
                          std::vector<std::pair<size_t, HashedKey>> &hashedKeys) {
+            uint64_t hashSanityCheck = 0;
             for (size_t i = from; i < to; i++) {
                 HashedKey hash = HashedKey(keys[i]);
                 size_t smallTable = hash.hash(HASH_FUNCTION_BUCKET_ASSIGNMENT, numSmallTables);
                 hashedKeys[i] = std::make_pair(smallTable, hash);
+                hashSanityCheck |= hash.mhc;
+            }
+            if (to - from > 500 && std::popcount(hashSanityCheck) < 56) {
+                throw std::invalid_argument("Something is wrong with the hash values. "
+                        "Did you pass payload data instead of hashed data?");
             }
         }
 

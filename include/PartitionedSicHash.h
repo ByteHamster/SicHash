@@ -16,7 +16,7 @@ class PartitionedSicHash {
         std::vector<uint64_t> childOffsets;
 
     public:
-        PartitionedSicHash(std::span<const std::string> keys, SicHashConfig config, size_t numThreads)
+        PartitionedSicHash(const std::vector<std::string> &keys, SicHashConfig config, size_t numThreads)
                 : numThreads(numThreads) {
             children.resize(numThreads);
             if (numThreads == 1) {
